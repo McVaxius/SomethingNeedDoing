@@ -4,15 +4,21 @@
   Link: https://discord.com/channels/1162031769403543643/1162799234874093661/1190858719546835065
 ]]
 
+--some ideas for next version
+--deliveroo config suggestion: add some seals. and we can have a seal 0 or 1 option in settings
+--add instructions for how to use this script
+--separate config into a file
+--check direction of where we spawned in gridania and uldah to adjust, and include new vislands
+--change any vislands to use base64 var passed to visland
+--use snd useitem
+
 -- Function to load variables from a file
 function loadVariablesFromFile(filename)
     local file = io.open(filename, "r")
-
     if file then
         for line in file:lines() do
             -- Remove single-line comments (lines starting with --) before processing
             line = line:gsub("%s*%-%-.*", "")
-            
             -- Extract variable name and value
             local variable, value = line:match("(%S+)%s*=%s*(.+)")
             if variable and value then
@@ -21,7 +27,6 @@ function loadVariablesFromFile(filename)
                 _G[variable] = value  -- Set the global variable with the extracted name and value
             end
         end
-
         io.close(file)
     else
         print("Error: Unable to open file " .. filename)
