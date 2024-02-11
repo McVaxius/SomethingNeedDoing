@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SomethingNeedDoing.Misc;
 
@@ -22,6 +21,4 @@ internal static class Extensions
             return source;
         return source.Substring(source.Length - tail_length);
     }
-
-    public static int ToUnixTimestamp(this DateTime value) => (int)Math.Truncate(value.ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
 }

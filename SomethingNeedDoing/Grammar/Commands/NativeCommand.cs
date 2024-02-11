@@ -1,6 +1,9 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Dalamud.Logging;
 using SomethingNeedDoing.Grammar.Modifiers;
 using SomethingNeedDoing.Misc;
 

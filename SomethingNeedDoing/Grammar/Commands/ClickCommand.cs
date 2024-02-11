@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using ClickLib;
 using ClickLib.Exceptions;
+using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 using SomethingNeedDoing.Misc;

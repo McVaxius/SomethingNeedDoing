@@ -1,11 +1,13 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 using SomethingNeedDoing.Misc;
-using SomethingNeedDoing.Misc.Commands;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -24,7 +26,8 @@ internal class RequireSpiritbondCommand : MacroCommand
     /// <param name="text">Original text.</param>
     /// <param name="within">Check if other items are within a certain percentage.</param>
     /// <param name="wait">Wait value.</param>
-    private RequireSpiritbondCommand(string text, float within, WaitModifier wait) : base(text, wait)
+    private RequireSpiritbondCommand(string text, float within, WaitModifier wait)
+        : base(text, wait)
     {
         this.within = within;
     }
@@ -54,7 +57,7 @@ internal class RequireSpiritbondCommand : MacroCommand
     {
         Service.Log.Debug($"Executing: {this.Text}");
 
-        if (CraftingCommands.Instance.CanExtractMateria(this.within))
+        if (CommandInterface.Instance.CanExtractMateria(this.within))
             throw new MacroPause("You can extract materia now", UiColor.Green);
 
         await this.PerformWait(token);

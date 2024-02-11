@@ -1,11 +1,17 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 using SomethingNeedDoing.Misc;
-using SomethingNeedDoing.Misc.Commands;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -24,7 +30,8 @@ internal class RequireQualityCommand : MacroCommand
     /// <param name="text">Original text.</param>
     /// <param name="quality">Quality value.</param>
     /// <param name="wait">Wait value.</param>
-    private RequireQualityCommand(string text, uint quality, WaitModifier wait) : base(text, wait)
+    private RequireQualityCommand(string text, uint quality, WaitModifier wait)
+        : base(text, wait)
     {
         this.requiredQuality = quality;
     }
@@ -53,7 +60,7 @@ internal class RequireQualityCommand : MacroCommand
     {
         Service.Log.Debug($"Executing: {this.Text}");
 
-        var current = CraftingCommands.Instance.GetQuality();
+        var current = CommandInterface.Instance.GetQuality();
 
         if (current < this.requiredQuality)
             throw new MacroPause("Required quality was not found", UiColor.Red);

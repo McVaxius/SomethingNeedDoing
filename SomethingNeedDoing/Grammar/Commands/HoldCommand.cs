@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 using SomethingNeedDoing.Misc;

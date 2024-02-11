@@ -1,11 +1,13 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 using SomethingNeedDoing.Misc;
-using SomethingNeedDoing.Misc.Commands;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -29,7 +31,8 @@ internal class RequireCommand : MacroCommand
     /// <param name="statusName">Status name.</param>
     /// <param name="wait">Wait value.</param>
     /// <param name="maxWait">MaxWait value.</param>
-    private RequireCommand(string text, string statusName, WaitModifier wait, MaxWaitModifier maxWait) : base(text, wait)
+    private RequireCommand(string text, string statusName, WaitModifier wait, MaxWaitModifier maxWait)
+        : base(text, wait)
     {
         statusName = statusName.ToLowerInvariant();
         var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()!;
@@ -67,7 +70,7 @@ internal class RequireCommand : MacroCommand
     {
         Service.Log.Debug($"Executing: {this.Text}");
 
-        bool IsStatusPresent() => CharacterStateCommands.Instance.HasStatusId(this.statusIDs);
+        bool IsStatusPresent() => CommandInterface.Instance.HasStatusId(this.statusIDs);
 
         var hasStatus = await this.LinearWait(StatusCheckInterval, this.maxWait, IsStatusPresent, token);
 

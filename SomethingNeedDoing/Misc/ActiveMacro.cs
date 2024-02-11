@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+
+using Dalamud.Logging;
 using NLua;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar;
 using SomethingNeedDoing.Grammar.Commands;
-using SomethingNeedDoing.Misc.Commands;
 
 namespace SomethingNeedDoing.Misc;
 
@@ -234,15 +235,7 @@ internal partial class ActiveMacro : IDisposable
         this.lua.State.Encoding = Encoding.UTF8;
         this.lua.LoadCLRPackage();
 
-        RegisterClassMethods(this.lua, ActionCommands.Instance);
-        RegisterClassMethods(this.lua, AddonCommands.Instance);
-        RegisterClassMethods(this.lua, CharacterStateCommands.Instance);
-        RegisterClassMethods(this.lua, CraftingCommands.Instance);
-        RegisterClassMethods(this.lua, InventoryCommands.Instance);
-        RegisterClassMethods(this.lua, IpcCommands.Instance);
-        RegisterClassMethods(this.lua, QuestCommands.Instance);
-        RegisterClassMethods(this.lua, EntityStateCommands.Instance);
-        RegisterClassMethods(this.lua, WorldStateCommands.Instance);
+        RegisterClassMethods(this.lua, CommandInterface.Instance);
 
         script = string.Format(EntrypointTemplate, script);
 
