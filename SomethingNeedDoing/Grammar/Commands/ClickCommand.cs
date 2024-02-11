@@ -1,12 +1,13 @@
+using System;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+
 using ClickLib;
 using ClickLib.Exceptions;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 using SomethingNeedDoing.Misc;
-using System;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -26,7 +27,10 @@ internal class ClickCommand : MacroCommand
     /// <param name="clickName">Click name.</param>
     /// <param name="wait">Wait value.</param>
     private ClickCommand(string text, string clickName, WaitModifier wait)
-        : base(text, wait) => this.clickName = clickName;
+        : base(text, wait)
+    {
+        this.clickName = clickName;
+    }
 
     /// <summary>
     /// Parse the text as a command.
@@ -47,7 +51,7 @@ internal class ClickCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public override async Task Execute(ActiveMacro macro, CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         Service.Log.Debug($"Executing: {this.Text}");
 

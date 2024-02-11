@@ -5,7 +5,10 @@ namespace SomethingNeedDoing.Misc;
 
 internal unsafe class Structs
 {
-    public Structs() => this._playerController = (PlayerController*)Service.SigScanner.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 75 1E 48 8D 0D");
+    public Structs()
+    {
+        _playerController = (PlayerController*)Service.SigScanner.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 75 1E 48 8D 0D");
+    }
 
     public PlayerController* _playerController;
 

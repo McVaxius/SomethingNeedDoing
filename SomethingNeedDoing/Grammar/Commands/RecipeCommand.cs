@@ -1,12 +1,13 @@
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using SomethingNeedDoing.Exceptions;
-using SomethingNeedDoing.Grammar.Modifiers;
-using SomethingNeedDoing.Misc;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
+
 using Sheets = Lumina.Excel.GeneratedSheets;
 
 namespace SomethingNeedDoing.Grammar.Commands;
@@ -26,7 +27,10 @@ internal class RecipeCommand : MacroCommand
     /// <param name="recipeName">Recipe name.</param>
     /// <param name="wait">Wait value.</param>
     private RecipeCommand(string text, string recipeName, WaitModifier wait)
-        : base(text, wait) => this.recipeName = recipeName.ToLowerInvariant();
+        : base(text, wait)
+    {
+        this.recipeName = recipeName.ToLowerInvariant();
+    }
 
     /// <summary>
     /// Parse the text as a command.
@@ -47,7 +51,7 @@ internal class RecipeCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public override async Task Execute(ActiveMacro macro, CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         Service.Log.Debug($"Executing: {this.Text}");
 
@@ -97,7 +101,8 @@ internal class RecipeCommand : MacroCommand
         }
     }
 
-    private uint GetClassJobID(Sheets.Recipe recipe) =>
+    private uint GetClassJobID(Sheets.Recipe recipe)
+    {
         // Name           CraftType ClassJob
         // Carpenter      0         8
         // Blacksmith     1         9
@@ -107,5 +112,6 @@ internal class RecipeCommand : MacroCommand
         // Weaver         5         13
         // Alchemist      6         14
         // Culinarian     7         15
-        recipe.CraftType.Value!.RowId + 8;
+        return recipe.CraftType.Value!.RowId + 8;
+    }
 }

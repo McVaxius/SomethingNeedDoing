@@ -1,10 +1,10 @@
-﻿using SomethingNeedDoing.Exceptions;
+﻿using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 using SomethingNeedDoing.Misc;
 using SomethingNeedDoing.Misc.Commands;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -34,11 +34,14 @@ internal class RequireRepairCommand : MacroCommand
         _ = WaitModifier.TryParse(ref text, out var waitModifier);
 
         var match = Regex.Match(text);
-        return !match.Success ? throw new MacroSyntaxError(text) : new RequireRepairCommand(text, waitModifier);
+        if (!match.Success)
+            throw new MacroSyntaxError(text);
+
+        return new RequireRepairCommand(text, waitModifier);
     }
 
     /// <inheritdoc/>
-    public override async Task Execute(ActiveMacro macro, CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         Service.Log.Debug($"Executing: {this.Text}");
 

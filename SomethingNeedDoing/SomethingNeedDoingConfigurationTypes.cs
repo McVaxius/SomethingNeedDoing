@@ -1,7 +1,8 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SomethingNeedDoing;
 
@@ -57,7 +58,7 @@ public class FolderNode : INode
     /// Gets the children inside this folder.
     /// </summary>
     [JsonProperty(ItemConverterType = typeof(ConcreteNodeConverter))]
-    public List<INode> Children { get; } = [];
+    public List<INode> Children { get; } = new List<INode>();
 }
 
 /// <summary>
@@ -99,7 +100,13 @@ public class ConcreteNodeConverter : JsonConverter
     }
 
     /// <inheritdoc/>
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer) => throw new NotImplementedException();
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    {
+        throw new NotImplementedException();
+    }
 
-    private string SimpleName(Type type) => $"{type.FullName}, {type.Assembly.GetName().Name}";
+    private string SimpleName(Type type)
+    {
+        return $"{type.FullName}, {type.Assembly.GetName().Name}";
+    }
 }

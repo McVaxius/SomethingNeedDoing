@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 using ClickLib;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
@@ -6,222 +9,227 @@ using ECommons;
 using SomethingNeedDoing.Interface;
 using SomethingNeedDoing.Managers;
 using SomethingNeedDoing.Misc.Commands;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace SomethingNeedDoing;
-
-/// <summary>
-/// Main plugin implementation.
-/// </summary>
-public sealed class SomethingNeedDoingPlugin : IDalamudPlugin
+namespace SomethingNeedDoing
 {
-    private const string Command = "/somethingneeddoing";
-    private static string[] Aliases => new string[] { "/pcraft", "/snd" };
-    private readonly List<string> registeredCommands = [];
-
-    private readonly WindowSystem windowSystem;
-    private readonly MacroWindow macroWindow;
-    private readonly HelpWindow helpWindow;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="SomethingNeedDoingPlugin"/> class.
+    /// Main plugin implementation.
     /// </summary>
-    /// <param name="pluginInterface">Dalamud plugin interface.</param>
-    public SomethingNeedDoingPlugin(DalamudPluginInterface pluginInterface)
+    public sealed class SomethingNeedDoingPlugin : IDalamudPlugin
     {
-        pluginInterface.Create<Service>();
+        private const string Command = "/somethingneeddoing";
+        private static string[] Aliases => new string[] { "/pcraft", "/snd" };
+        private readonly List<string> registeredCommands = new();
 
-        Click.Initialize();
+        private readonly WindowSystem windowSystem;
+        private readonly MacroWindow macroWindow;
+        private readonly HelpWindow helpWindow;
 
-        Service.Plugin = this;
-        Service.Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface.ConfigDirectory);
-
-        ECommonsMain.Init(pluginInterface, this);
-
-        Service.ChatManager = new ChatManager();
-        Service.GameEventManager = new GameEventManager();
-        Service.MacroManager = new MacroManager();
-
-        this.macroWindow = new();
-        this.helpWindow = new();
-        this.windowSystem = new("SomethingNeedDoing");
-        this.windowSystem.AddWindow(this.macroWindow);
-        this.windowSystem.AddWindow(this.helpWindow);
-
-        Service.Interface.UiBuilder.Draw += this.windowSystem.Draw;
-        Service.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
-        Service.CommandManager.AddHandler(Command, new CommandInfo(this.OnChatCommand)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SomethingNeedDoingPlugin"/> class.
+        /// </summary>
+        /// <param name="pluginInterface">Dalamud plugin interface.</param>
+        public SomethingNeedDoingPlugin(DalamudPluginInterface pluginInterface)
         {
-            HelpMessage = "Open a window to edit various settings.",
-            ShowInHelp = true,
-        });
-        this.registeredCommands.Add(Command);
-        foreach (var a in Aliases)
-        {
-            if (!Service.CommandManager.Commands.ContainsKey(a))
+            pluginInterface.Create<Service>();
+
+            Click.Initialize();
+
+            Service.Plugin = this;
+            Service.Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface.ConfigDirectory);
+
+            ECommonsMain.Init(pluginInterface, this);
+
+            Service.ChatManager = new ChatManager();
+            Service.GameEventManager = new GameEventManager();
+            Service.MacroManager = new MacroManager();
+
+            this.macroWindow = new();
+            this.helpWindow = new();
+            this.windowSystem = new("SomethingNeedDoing");
+            this.windowSystem.AddWindow(this.macroWindow);
+            this.windowSystem.AddWindow(this.helpWindow);
+
+            Service.Interface.UiBuilder.Draw += this.windowSystem.Draw;
+            Service.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
+            Service.CommandManager.AddHandler(Command, new CommandInfo(this.OnChatCommand)
             {
-                Service.CommandManager.AddHandler(a, new CommandInfo(this.OnChatCommand)
+                HelpMessage = "Open a window to edit various settings.",
+                ShowInHelp = true,
+            });
+            registeredCommands.Add(Command);
+            foreach (var a in Aliases)
+            {
+                if (!Service.CommandManager.Commands.ContainsKey(a))
                 {
-                    HelpMessage = $"{Command} Alias",
-                    ShowInHelp = true
-                });
-                this.registeredCommands.Add(a);
+                    Service.CommandManager.AddHandler(a, new CommandInfo(OnChatCommand)
+                    {
+                        HelpMessage = $"{Command} Alias",
+                        ShowInHelp = true
+                    });
+                    registeredCommands.Add(a);
+                }
             }
         }
-    }
 
-    /// <inheritdoc/>
-    public string Name => "Something Need Doing (Expanded Edition)";
+        /// <inheritdoc/>
+        public string Name => "Something Need Doing (Expanded Edition)";
 
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        foreach (var c in this.registeredCommands)
+        /// <inheritdoc/>
+        public void Dispose()
         {
-            Service.CommandManager.RemoveHandler(c);
+            foreach (var c in registeredCommands)
+            {
+                Service.CommandManager.RemoveHandler(c);
+            }
+            registeredCommands.Clear();
+            Service.Interface.UiBuilder.OpenConfigUi -= this.OnOpenConfigUi;
+            Service.Interface.UiBuilder.Draw -= this.windowSystem.Draw;
+
+            this.windowSystem?.RemoveAllWindows();
+
+            Service.MacroManager?.Dispose();
+            Service.GameEventManager?.Dispose();
+            Service.ChatManager?.Dispose();
+            IpcCommands.Instance?.Dispose();
         }
-        this.registeredCommands.Clear();
-        Service.Interface.UiBuilder.OpenConfigUi -= this.OnOpenConfigUi;
-        Service.Interface.UiBuilder.Draw -= this.windowSystem.Draw;
 
-        this.windowSystem?.RemoveAllWindows();
+        /// <summary>
+        /// Open the help menu.
+        /// </summary>
+        internal void OpenHelpWindow()
+        {
+            this.helpWindow.IsOpen = true;
+        }
 
-        Service.MacroManager?.Dispose();
-        Service.GameEventManager?.Dispose();
-        Service.ChatManager?.Dispose();
-        IpcCommands.Instance?.Dispose();
-    }
-
-    /// <summary>
-    /// Open the help menu.
-    /// </summary>
-    internal void OpenHelpWindow() => this.helpWindow.IsOpen = true;
-
-    private void OnOpenConfigUi() => this.macroWindow.Toggle();
-
-    private void OnChatCommand(string command, string arguments)
-    {
-        arguments = arguments.Trim();
-
-        if (arguments == string.Empty)
+        private void OnOpenConfigUi()
         {
             this.macroWindow.Toggle();
-            return;
         }
-        else if (arguments.StartsWith("run "))
+
+        private void OnChatCommand(string command, string arguments)
         {
-            arguments = arguments[4..].Trim();
+            arguments = arguments.Trim();
 
-            var loopCount = 0u;
-            if (arguments.StartsWith("loop "))
+            if (arguments == string.Empty)
             {
-                arguments = arguments[5..].Trim();
-                var nextSpace = arguments.IndexOf(' ');
-                if (nextSpace == -1)
-                {
-                    Service.ChatManager.PrintError("Could not determine loop count");
-                    return;
-                }
-
-                if (!uint.TryParse(arguments[..nextSpace], out loopCount))
-                {
-                    Service.ChatManager.PrintError("Could not parse loop count");
-                    return;
-                }
-
-                arguments = arguments[(nextSpace + 1)..].Trim();
-            }
-
-            var macroName = arguments.Trim('"');
-            var nodes = Service.Configuration.GetAllNodes()
-                .OfType<MacroNode>()
-                .Where(node => node.Name.Trim() == macroName)
-                .ToArray();
-
-            if (nodes.Length == 0)
-            {
-                Service.ChatManager.PrintError("No macros match that name");
+                this.macroWindow.Toggle();
                 return;
             }
-
-            if (nodes.Length > 1)
+            else if (arguments.StartsWith("run "))
             {
-                Service.ChatManager.PrintError("More than one macro matches that name");
-                return;
-            }
+                arguments = arguments[4..].Trim();
 
-            var node = nodes[0];
-
-            if (loopCount > 0)
-            {
-                // Clone a new node so the modification doesn't save.
-                node = new MacroNode()
+                var loopCount = 0u;
+                if (arguments.StartsWith("loop "))
                 {
-                    Name = node.Name,
-                    Contents = node.Contents,
-                };
-
-                var lines = node.Contents.Split('\r', '\n');
-                for (var i = lines.Length - 1; i >= 0; i--)
-                {
-                    var line = lines[i].Trim();
-                    if (line.StartsWith("/loop"))
+                    arguments = arguments[5..].Trim();
+                    var nextSpace = arguments.IndexOf(' ');
+                    if (nextSpace == -1)
                     {
-                        var parts = line.Split()
-                            .Where(s => !string.IsNullOrEmpty(s))
-                            .ToArray();
+                        Service.ChatManager.PrintError("Could not determine loop count");
+                        return;
+                    }
 
-                        var echo = line.Contains("<echo>") ? "<echo>" : string.Empty;
-                        lines[i] = $"/loop {loopCount} {echo}";
-                        node.Contents = string.Join('\n', lines);
-                        Service.ChatManager.PrintMessage($"Running macro \"{macroName}\" {loopCount} times");
-                        break;
+                    if (!uint.TryParse(arguments[..nextSpace], out loopCount))
+                    {
+                        Service.ChatManager.PrintError("Could not parse loop count");
+                        return;
+                    }
+
+                    arguments = arguments[(nextSpace + 1)..].Trim();
+                }
+
+                var macroName = arguments.Trim('"');
+                var nodes = Service.Configuration.GetAllNodes()
+                    .OfType<MacroNode>()
+                    .Where(node => node.Name.Trim() == macroName)
+                    .ToArray();
+
+                if (nodes.Length == 0)
+                {
+                    Service.ChatManager.PrintError("No macros match that name");
+                    return;
+                }
+
+                if (nodes.Length > 1)
+                {
+                    Service.ChatManager.PrintError("More than one macro matches that name");
+                    return;
+                }
+
+                var node = nodes[0];
+
+                if (loopCount > 0)
+                {
+                    // Clone a new node so the modification doesn't save.
+                    node = new MacroNode()
+                    {
+                        Name = node.Name,
+                        Contents = node.Contents,
+                    };
+
+                    var lines = node.Contents.Split('\r', '\n');
+                    for (var i = lines.Length - 1; i >= 0; i--)
+                    {
+                        var line = lines[i].Trim();
+                        if (line.StartsWith("/loop"))
+                        {
+                            var parts = line.Split()
+                                .Where(s => !string.IsNullOrEmpty(s))
+                                .ToArray();
+
+                            var echo = line.Contains("<echo>") ? "<echo>" : string.Empty;
+                            lines[i] = $"/loop {loopCount} {echo}";
+                            node.Contents = string.Join('\n', lines);
+                            Service.ChatManager.PrintMessage($"Running macro \"{macroName}\" {loopCount} times");
+                            break;
+                        }
                     }
                 }
-            }
-            else
-            {
-                Service.ChatManager.PrintMessage($"Running macro \"{macroName}\"");
-            }
+                else
+                {
+                    Service.ChatManager.PrintMessage($"Running macro \"{macroName}\"");
+                }
 
-            Service.MacroManager.EnqueueMacro(node);
-            return;
-        }
-        else if (arguments == "pause")
-        {
-            Service.ChatManager.PrintMessage("Pausing");
-            Service.MacroManager.Pause();
-            return;
-        }
-        else if (arguments == "pause loop")
-        {
-            Service.ChatManager.PrintMessage("Pausing at next /loop");
-            Service.MacroManager.Pause(true);
-            return;
-        }
-        else if (arguments == "resume")
-        {
-            Service.ChatManager.PrintMessage("Resuming");
-            Service.MacroManager.Resume();
-            return;
-        }
-        else if (arguments == "stop")
-        {
-            Service.ChatManager.PrintMessage($"Stopping");
-            Service.MacroManager.Stop();
-            return;
-        }
-        else if (arguments == "stop loop")
-        {
-            Service.ChatManager.PrintMessage($"Stopping at next /loop");
-            Service.MacroManager.Stop(true);
-            return;
-        }
-        else if (arguments == "help")
-        {
-            this.OpenHelpWindow();
-            return;
+                Service.MacroManager.EnqueueMacro(node);
+                return;
+            }
+            else if (arguments == "pause")
+            {
+                Service.ChatManager.PrintMessage("Pausing");
+                Service.MacroManager.Pause();
+                return;
+            }
+            else if (arguments == "pause loop")
+            {
+                Service.ChatManager.PrintMessage("Pausing at next /loop");
+                Service.MacroManager.Pause(true);
+                return;
+            }
+            else if (arguments == "resume")
+            {
+                Service.ChatManager.PrintMessage("Resuming");
+                Service.MacroManager.Resume();
+                return;
+            }
+            else if (arguments == "stop")
+            {
+                Service.ChatManager.PrintMessage($"Stopping");
+                Service.MacroManager.Stop();
+                return;
+            }
+            else if (arguments == "stop loop")
+            {
+                Service.ChatManager.PrintMessage($"Stopping at next /loop");
+                Service.MacroManager.Stop(true);
+                return;
+            }
+            else if (arguments == "help")
+            {
+                this.OpenHelpWindow();
+                return;
+            }
         }
     }
 }

@@ -1,8 +1,12 @@
-﻿using ECommons;
+﻿using Dalamud.Utility.Signatures;
+using ECommons;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Lumina.Data.Parsing;
 using SomethingNeedDoing.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,9 +20,9 @@ public class AddonCommands
 
     public List<string> ListAllFunctions()
     {
-        var methods = this.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+        MethodInfo[] methods = this.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
         var list = new List<string>();
-        foreach (var method in methods.Where(x => x.Name != nameof(ListAllFunctions) && x.DeclaringType != typeof(object)))
+        foreach (MethodInfo method in methods.Where(x => x.Name != nameof(ListAllFunctions) && x.DeclaringType != typeof(object)))
         {
             var parameterList = method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}{(p.IsOptional ? " = " + (p.DefaultValue ?? "null") : "")}");
             list.Add($"{method.ReturnType.Name} {method.Name}({string.Join(", ", parameterList)})");
@@ -162,9 +166,10 @@ public class AddonCommands
             throw new MacroCommandError("Index out of range");
 
         var textPtr = popup->EntryNames[index];
-        return textPtr == null
-            ? throw new MacroCommandError("Text pointer was null")
-            : Marshal.PtrToStringUTF8((nint)textPtr) ?? string.Empty;
+        if (textPtr == null)
+            throw new MacroCommandError("Text pointer was null");
+
+        return Marshal.PtrToStringUTF8((nint)textPtr) ?? string.Empty;
     }
 
     public unsafe string GetSelectIconStringText(int index)
@@ -181,10 +186,18 @@ public class AddonCommands
             throw new MacroCommandError("Index out of range");
 
         var textPtr = popup->EntryNames[index];
-        return textPtr == null
-            ? throw new MacroCommandError("Text pointer was null")
-            : Marshal.PtrToStringUTF8((nint)textPtr) ?? string.Empty;
+        if (textPtr == null)
+            throw new MacroCommandError("Text pointer was null");
+
+        return Marshal.PtrToStringUTF8((nint)textPtr) ?? string.Empty;
     }
 
-    public unsafe int GetNodeListCount(string addonName) => GenericHelpers.TryGetAddonByName<AtkUnitBase>(addonName, out var addon) ? addon->UldManager.NodeListCount : 0;
+    public unsafe int GetNodeListCount(string addonName)
+    {
+        if (GenericHelpers.TryGetAddonByName<AtkUnitBase>(addonName, out var addon))
+        {
+            return addon->UldManager.NodeListCount;
+        }
+        return 0;
+    }
 }

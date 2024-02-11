@@ -1,9 +1,10 @@
-﻿using Dalamud.Game.ClientState.Keys;
-using ECommons.Interop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
+
+using Dalamud.Game.ClientState.Keys;
+using ECommons.Interop;
 
 namespace SomethingNeedDoing.Misc;
 
@@ -12,7 +13,7 @@ namespace SomethingNeedDoing.Misc;
 /// </summary>
 internal static class Keyboard
 {
-    private static readonly IntPtr? handle = null;
+    private static IntPtr? handle = null;
 
     /// <summary>
     /// Send a virtual key.
@@ -76,7 +77,7 @@ internal static class Keyboard
         }
     }
 
-    public static void Release(VirtualKey key) => Release(key, null);
+    public static void Release (VirtualKey key) => Release(key, null);
 
     public static void Release(VirtualKey key, IEnumerable<VirtualKey>? mods)
     {

@@ -1,6 +1,7 @@
+using System.Numerics;
+
 using Dalamud.Interface;
 using ImGuiNET;
-using System.Numerics;
 
 namespace SomethingNeedDoing.Interface;
 

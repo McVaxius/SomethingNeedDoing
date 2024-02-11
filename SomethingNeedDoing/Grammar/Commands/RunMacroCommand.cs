@@ -1,10 +1,10 @@
-using SomethingNeedDoing.Exceptions;
-using SomethingNeedDoing.Grammar.Modifiers;
-using SomethingNeedDoing.Misc;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -24,7 +24,10 @@ internal class RunMacroCommand : MacroCommand
     /// <param name="macroName">Macro name.</param>
     /// <param name="wait">Wait value.</param>
     private RunMacroCommand(string text, string macroName, WaitModifier wait)
-        : base(text, wait) => this.macroName = macroName;
+        : base(text, wait)
+    {
+        this.macroName = macroName;
+    }
 
     /// <summary>
     /// Parse the text as a command.
@@ -45,7 +48,7 @@ internal class RunMacroCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public override async Task Execute(ActiveMacro macro, CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         Service.Log.Debug($"Executing: {this.Text}");
 

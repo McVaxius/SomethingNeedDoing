@@ -1,6 +1,10 @@
-﻿namespace SomethingNeedDoing.Misc;
-
-public static class SignatureHelper
+﻿namespace SomethingNeedDoing.DalamudServices.Legacy
 {
-    public static void Initialise(object which, bool log = false) => Service.Hook.InitializeFromAttributes(which);
+    public static class SignatureHelper
+    {
+        public static void Initialise(object which, bool log = false)
+        {
+            Service.Hook.InitializeFromAttributes(which);
+        }
+    }
 }

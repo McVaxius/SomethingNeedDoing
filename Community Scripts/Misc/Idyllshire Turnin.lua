@@ -8,15 +8,12 @@ This requires:
 -> IMPORTANT: YesAlready -> Yes/No -> Add this:  You cannot currently equip this item. Proceed with the transaction?
   Yes, you can zone lock this to strictly Idyllshire if you would like (I did)
 
-  ALSO IMPORTANT!! YesAlready -> Bothers -> Scroll near the VERY bottom and make sure "ShopExchangeItemDialog" is checkmarked
-
   -> Teleporter
   -> Pandora (Enable "Auto-select Turn-ins & Automatically Confirm")
   -> Lifestream 
-  -> Deliveroo [If you need the link, here --> https://plugins.carvel.li/]
+  -> Deliveroo
 
-  Version: 2.7 [Finally Released, now with GC Teleport Tickets]
-    - Fixed the teleport issue in Idyllshire
+  Version: 2.5 [Finally Released, now with GC Teleport Tickets]
 ]]
 
 
@@ -101,19 +98,13 @@ if IsInZone(478) then
   yield("/target Aetheryte")
   yield("/lockon")
   yield("/automove")
-  yield("/wait 1.5")
+  yield("/wait 1.0")
   yield("/automove")
   yield("/li West")
   yield("/wait 1")
 end
 
 AetheryteTeleport()
-
-Distance_Test = GetDistanceToPoint(-71.618, 208.926, -24.662)
-if Distance_Test > 4 then
-  yield ("/echo hmm.... that failed for some reason. Gonna try that again")
-  goto IdyllshireTurnin
-end
 
 yield("/visland resume")
 yield("/visland stop")

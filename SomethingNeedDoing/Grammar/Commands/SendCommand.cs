@@ -1,12 +1,13 @@
-using Dalamud.Game.ClientState.Keys;
-using SomethingNeedDoing.Exceptions;
-using SomethingNeedDoing.Grammar.Modifiers;
-using SomethingNeedDoing.Misc;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Dalamud.Game.ClientState.Keys;
+using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -26,7 +27,10 @@ internal class SendCommand : MacroCommand
     /// <param name="vkCodes">VirtualKey codes.</param>
     /// <param name="wait">Wait value.</param>
     private SendCommand(string text, VirtualKey[] vkCodes, WaitModifier wait)
-        : base(text, wait) => this.vkCodes = vkCodes;
+        : base(text, wait)
+    {
+        this.vkCodes = vkCodes;
+    }
 
     /// <summary>
     /// Parse the text as a command.
@@ -45,7 +49,10 @@ internal class SendCommand : MacroCommand
         var vkCodes = nameValue.Split("+")
             .Select(name =>
             {
-                return !Enum.TryParse<VirtualKey>(name, true, out var vkCode) ? throw new MacroCommandError("Invalid virtual key") : vkCode;
+                if (!Enum.TryParse<VirtualKey>(name, true, out var vkCode))
+                    throw new MacroCommandError("Invalid virtual key");
+
+                return vkCode;
             })
             .ToArray();
 
@@ -53,7 +60,7 @@ internal class SendCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public override async Task Execute(ActiveMacro macro, CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         Service.Log.Debug($"Executing: {this.Text}");
 

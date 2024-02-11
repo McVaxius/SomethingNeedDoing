@@ -1,5 +1,6 @@
-using FFXIVClientStructs.FFXIV.Client.Game;
 using System.Runtime.InteropServices;
+
+using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace SomethingNeedDoing.CraftingData;
 

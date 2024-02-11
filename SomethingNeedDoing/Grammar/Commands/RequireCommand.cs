@@ -1,11 +1,11 @@
-using SomethingNeedDoing.Exceptions;
-using SomethingNeedDoing.Grammar.Modifiers;
-using SomethingNeedDoing.Misc;
-using SomethingNeedDoing.Misc.Commands;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
+using SomethingNeedDoing.Misc.Commands;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -63,7 +63,7 @@ internal class RequireCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public override async Task Execute(ActiveMacro macro, CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         Service.Log.Debug($"Executing: {this.Text}");
 

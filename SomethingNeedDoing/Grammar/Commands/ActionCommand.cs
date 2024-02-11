@@ -18,8 +18,8 @@ internal class ActionCommand : MacroCommand
     private const int SafeCraftMaxWait = 5000;
 
     private static readonly Regex Regex = new(@"^/(?:ac|action)\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly HashSet<string> CraftingActionNames = [];
-    private static readonly HashSet<string> CraftingQualityActionNames = [];
+    private static readonly HashSet<string> CraftingActionNames = new();
+    private static readonly HashSet<string> CraftingQualityActionNames = new();
 
     private readonly string actionName;
     private readonly UnsafeModifier unsafeMod;
@@ -73,7 +73,7 @@ internal class ActionCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public override async Task Execute(ActiveMacro macro, CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         Service.Log.Debug($"Executing: {this.Text}");
 
@@ -122,7 +122,7 @@ internal class ActionCommand : MacroCommand
                 else
                 {
                     // Wait for the data update
-                    if (!DataWaiter.WaitOne(SafeCraftMaxWait) && Service.Configuration.StopMacroIfActionTimeout)
+                    if (!DataWaiter.WaitOne(SafeCraftMaxWait))
                         throw new MacroActionTimeoutError("Did not receive a timely response");
                 }
 

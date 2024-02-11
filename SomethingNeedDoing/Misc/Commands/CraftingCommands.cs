@@ -1,14 +1,14 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Dalamud.Game.ClientState.Conditions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using SomethingNeedDoing.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace SomethingNeedDoing.Misc.Commands;
 
@@ -18,9 +18,9 @@ public class CraftingCommands()
 
     public List<string> ListAllFunctions()
     {
-        var methods = this.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+        MethodInfo[] methods = this.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
         var list = new List<string>();
-        foreach (var method in methods.Where(x => x.Name != nameof(ListAllFunctions) && x.DeclaringType != typeof(object)))
+        foreach (MethodInfo method in methods.Where(x => x.Name != nameof(ListAllFunctions) && x.DeclaringType != typeof(object)))
         {
             var parameterList = method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}{(p.IsOptional ? " = " + (p.DefaultValue ?? "null") : "")}");
             list.Add($"{method.ReturnType.Name} {method.Name}({string.Join(", ", parameterList)})");
@@ -51,7 +51,10 @@ public class CraftingCommands()
     private unsafe AddonSynthesis* GetSynthesisAddon()
     {
         var ptr = Service.GameGui.GetAddonByName("Synthesis", 1);
-        return ptr == nint.Zero ? throw new MacroCommandError("Could not find Synthesis addon") : (AddonSynthesis*)ptr;
+        if (ptr == nint.Zero)
+            throw new MacroCommandError("Could not find Synthesis addon");
+
+        return (AddonSynthesis*)ptr;
     }
 
     public unsafe bool IsCollectable()

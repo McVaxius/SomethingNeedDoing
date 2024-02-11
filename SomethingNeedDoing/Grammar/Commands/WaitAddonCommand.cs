@@ -1,11 +1,11 @@
-using FFXIVClientStructs.FFXIV.Component.GUI;
-using SomethingNeedDoing.Exceptions;
-using SomethingNeedDoing.Grammar.Modifiers;
-using SomethingNeedDoing.Misc;
 using System;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using FFXIVClientStructs.FFXIV.Component.GUI;
+using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -58,16 +58,16 @@ internal class WaitAddonCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public override async Task Execute(ActiveMacro macro, CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         Service.Log.Debug($"Executing: {this.Text}");
 
         var (addonPtr, isVisible) = await this.LinearWait(AddonCheckInterval, this.maxWait, this.IsAddonVisible, token);
 
-        if (addonPtr == IntPtr.Zero && Service.Configuration.StopMacroIfAddonNotFound)
+        if (addonPtr == IntPtr.Zero)
             throw new MacroCommandError("Addon not found");
 
-        if (!isVisible && Service.Configuration.StopMacroIfAddonNotVisible)
+        if (!isVisible)
             throw new MacroCommandError("Addon not visible");
 
         await this.PerformWait(token);
@@ -80,6 +80,9 @@ internal class WaitAddonCommand : MacroCommand
             return (addonPtr, false);
 
         var addon = (AtkUnitBase*)addonPtr;
-        return !addon->IsVisible || addon->UldManager.LoadedState != AtkLoadState.Loaded ? ((nint Addon, bool IsVisible))(addonPtr, false) : ((nint Addon, bool IsVisible))(addonPtr, true);
+        if (!addon->IsVisible || addon->UldManager.LoadedState != AtkLoadState.Loaded)
+            return (addonPtr, false);
+
+        return (addonPtr, true);
     }
 }

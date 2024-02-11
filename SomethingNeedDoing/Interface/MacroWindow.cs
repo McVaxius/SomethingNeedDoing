@@ -1,3 +1,9 @@
+using System;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+using System.Text.RegularExpressions;
+
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
@@ -5,11 +11,6 @@ using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Misc;
-using System;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace SomethingNeedDoing.Interface;
 
@@ -36,13 +37,22 @@ internal class MacroWindow : Window
 
     private static FolderNode RootFolder => Service.Configuration.RootFolder;
 
-    public override void Update() => this.Flags = Service.Configuration.LockWindow ? ImGuiWindowFlags.NoMove : 0;
+    public override void Update()
+    {
+        this.Flags = Service.Configuration.LockWindow ? ImGuiWindowFlags.NoMove : 0;
+    }
 
     /// <inheritdoc/>
-    public override void PreDraw() => ImGui.PushStyleColor(ImGuiCol.ResizeGrip, 0);
+    public override void PreDraw()
+    {
+        ImGui.PushStyleColor(ImGuiCol.ResizeGrip, 0);
+    }
 
     /// <inheritdoc/>
-    public override void PostDraw() => ImGui.PopStyleColor();
+    public override void PostDraw()
+    {
+        ImGui.PopStyleColor();
+    }
 
     /// <inheritdoc/>
     public override void Draw()
@@ -59,41 +69,8 @@ internal class MacroWindow : Window
         ImGui.Columns(1);
     }
 
-    private void DrawHeader()
-    {
-        if (ImGuiEx.IconButton(FontAwesomeIcon.Plus, "Add macro"))
-        {
-            var newNode = new MacroNode { Name = this.GetUniqueNodeName("Untitled macro") };
-            RootFolder.Children.Add(newNode);
-            Service.Configuration.Save();
-        }
-
-        ImGui.SameLine();
-        if (ImGuiEx.IconButton(FontAwesomeIcon.FolderPlus, "Add folder"))
-        {
-            var newNode = new FolderNode { Name = this.GetUniqueNodeName("Untitled folder") };
-            RootFolder.Children.Add(newNode);
-            Service.Configuration.Save();
-        }
-
-        ImGui.SameLine();
-        if (ImGuiEx.IconButton(FontAwesomeIcon.FileImport, "Import macro from clipboard"))
-        {
-            var text = MiscHelpers.ConvertClipboardToSafeString();
-            var node = new MacroNode { Name = this.GetUniqueNodeName("Untitled macro") };
-            RootFolder.Children.Add(node);
-
-            if (MiscHelpers.IsLuaCode(text))
-                node.IsLua = true;
-
-            node.Contents = text;
-            Service.Configuration.Save();
-        }
-    }
-
     private void DisplayNodeTree()
     {
-        this.DrawHeader();
         this.DisplayNode(RootFolder);
     }
 
@@ -298,10 +275,10 @@ internal class MacroWindow : Window
         if (ImGui.BeginListBox("##running-macros", new Vector2(-1, runningHeight)))
         {
             var macroStatus = Service.MacroManager.MacroStatus;
-            for (var i = 0; i < macroStatus.Length; i++)
+            for (int i = 0; i < macroStatus.Length; i++)
             {
                 var (name, stepIndex) = macroStatus[i];
-                var text = name;
+                string text = name;
                 if (i == 0 || stepIndex > 1)
                     text += $" (step {stepIndex})";
                 ImGui.Selectable($"{text}##{Guid.NewGuid()}", i == 0);
@@ -321,7 +298,7 @@ internal class MacroWindow : Window
             }
             else
             {
-                for (var i = stepIndex; i < macroContent.Length; i++)
+                for (int i = stepIndex; i < macroContent.Length; i++)
                 {
                     var step = macroContent[i];
                     var isCurrentStep = i == stepIndex;
@@ -345,6 +322,34 @@ internal class MacroWindow : Window
 
         if (ImGuiEx.IconButton(FontAwesomeIcon.Play, "Run"))
             this.RunMacro(node);
+
+        ImGui.SameLine();
+        if (ImGuiEx.IconButton(FontAwesomeIcon.FileImport, "Import from clipboard"))
+        {
+            string text;
+            try
+            {
+                text = ImGui.GetClipboardText();
+            }
+            catch (NullReferenceException ex)
+            {
+                text = string.Empty;
+                Service.ChatManager.PrintError($"[SND] Could not import from clipboard.");
+                Service.Log.Error(ex, "Clipboard import error");
+            }
+
+            // Replace \r with \r\n, usually from copy/pasting from the in-game macro window
+            var rex = new Regex("\r(?!\n)", RegexOptions.Compiled);
+            var matches = from Match match in rex.Matches(text)
+                          let index = match.Index
+                          orderby index descending
+                          select index;
+            foreach (var index in matches)
+                text = text.Remove(index, 1).Insert(index, "\r\n");
+
+            node.Contents = text;
+            Service.Configuration.Save();
+        }
 
         ImGui.SameLine();
         if (ImGuiEx.IconButton(FontAwesomeIcon.TimesCircle, "Close"))
@@ -422,20 +427,6 @@ internal class MacroWindow : Window
 
                 ImGui.PopItemWidth();
             }
-        }
-
-        ImGui.SameLine();
-        var buttonSize = ImGuiHelpers.GetButtonSize(FontAwesomeIcon.FileImport.ToIconString());
-        ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - buttonSize.X - ImGui.GetStyle().WindowPadding.X);
-        if (ImGuiEx.IconButton(FontAwesomeIcon.FileImport, "Import from clipboard"))
-        {
-            var text = MiscHelpers.ConvertClipboardToSafeString();
-
-            if (MiscHelpers.IsLuaCode(text))
-                node.IsLua = true;
-
-            node.Contents = text;
-            Service.Configuration.Save();
         }
 
         ImGui.PushItemWidth(-1);
@@ -564,7 +555,7 @@ internal class MacroWindow : Window
     {
         if (ImGui.IsItemHovered())
         {
-            var mouseDelta = (int)ImGui.GetIO().MouseWheel;  // -1, 0, 1
+            int mouseDelta = (int)ImGui.GetIO().MouseWheel;  // -1, 0, 1
             if (mouseDelta != 0)
             {
                 iv += mouseDelta;
