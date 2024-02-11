@@ -4,62 +4,43 @@
   Link: https://discord.com/channels/1162031769403543643/1162799234874093661/1190858719546835065
 ]]
 
---arrays so we can easily transfer between PC and configure for other lists of retainers
-local folderPath = "D:/FF14/!gil/"
---filename will be FCranks
+-- Function to load variables from a file
+function loadVariablesFromFile(filename)
+    local file = io.open(filename, "r")
 
-local chars_FCBUFF = {
- 'firstname lastname@server',
- 'firstname lastname@server'
-}
+    if file then
+        for line in file:lines() do
+            -- Remove single-line comments (lines starting with --) before processing
+            line = line:gsub("%s*%-%-.*", "")
+            
+            -- Extract variable name and value
+            local variable, value = line:match("(%S+)%s*=%s*(.+)")
+            if variable and value then
+                -- Convert the value to the appropriate type (number or string)
+                value = tonumber(value) or value
+                _G[variable] = value  -- Set the global variable with the extracted name and value
+            end
+        end
 
-local chars_gridania = {
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server'
-}
+        io.close(file)
+    else
+        print("Error: Unable to open file " .. filename)
+    end
+end
 
-local chars_uldah = {
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server'
-}
 
-local chars_toilet = {
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server',
- 'firstname lastname@server'
-}
+-- Specify the path to your text file
+--[[
+	--some vestigial junk i may remove if not needed once i update script properly
+	tempchar = GetCharacterName()
+	tempchar = tempchar:match("%s*(.-)%s*") --remove spaces at start and end only
+	tempchar = tempchar:gsub("%s", "")  --remove all spaces
+	tempchar = tempchar:gsub("'", "")   --remove all apostrophes
+]]
+local filename = os.getenv("appdata").."\\XIVLauncher\\pluginConfigs\\SomethingNeedDoing\\RobustGCTurnIn_McVaxius.ini"
 
-local charFCS = {
-	['firstname lastname'] = 'FCNEM',
-	['firstname lastname'] = 'FCNEM',
-	['firstname lastname'] = 'FCNEM',
-	['firstname lastname'] = 'FCNEM',
-	['firstname lastname'] = 'FCNEM',
-	['firstname lastname'] = 'FCNEM',
-	['firstname lastname'] = 'FCNEM',
-	['firstname lastname'] = 'FCNEM'
-}
-
---total retainer abusers and starting the counter at 1
-total_rcucks = 22
-rcuck_count = 1
-
---do we bother with fc buffs? 0 = no 1 = yes
-process_fc_buffs = 1
-process_gridania = 1
-process_uldah = 1
-process_toilet = 1
+-- Call the function to load variables from the file
+loadVariablesFromFile(filename)
 
 function recordFCRANK()
 	local file = io.open(folderPath .. "FCranks.txt", "a")
