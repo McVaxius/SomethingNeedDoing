@@ -14,9 +14,9 @@ public class IpcCommands
 
     public List<string> ListAllFunctions()
     {
-        MethodInfo[] methods = this.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+        var methods = this.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
         var list = new List<string>();
-        foreach (MethodInfo method in methods.Where(x => x.Name != nameof(ListAllFunctions) && x.DeclaringType != typeof(object)))
+        foreach (var method in methods.Where(x => x.Name != nameof(ListAllFunctions) && x.DeclaringType != typeof(object)))
         {
             var parameterList = method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}{(p.IsOptional ? " = " + (p.DefaultValue ?? "null") : "")}");
             list.Add($"{method.ReturnType.Name} {method.Name}({string.Join(", ", parameterList)})");
@@ -28,17 +28,27 @@ public class IpcCommands
 
     internal IpcCommands()
     {
-        _autoRetainerApi = new();
+        this._autoRetainerApi = new();
         VislandIPC.Init();
         DeliverooIPC.Init();
+        PandorasBoxIPC.Init();
     }
 
-    public void Dispose()
+    internal void Dispose()
     {
-        _autoRetainerApi.Dispose();
+        this._autoRetainerApi.Dispose();
         VislandIPC.Dispose();
         DeliverooIPC.Dispose();
+        PandorasBoxIPC.Dispose();
     }
+
+    #region PandorasBox
+    public bool? PandoraGetFeatureEnabled(string feature) => PandorasBoxIPC.GetFeatureEnabled.InvokeFunc(feature);
+    public bool? PandoraGetFeatureConfigEnabled(string feature, string config) => PandorasBoxIPC.GetConfigEnabled.InvokeFunc(feature, config);
+    public void PandoraSetFeatureState(string feature, bool state) => PandorasBoxIPC.SetFeatureEnabled.InvokeFunc(feature, state);
+    public void PandoraSetFeatureConfigState(string feature, string config, bool state) => PandorasBoxIPC.SetConfigEnabled.InvokeFunc(feature, config, state);
+    public void PandoraPauseFeature(string feature, int ms) => PandorasBoxIPC.PauseFeature.InvokeFunc(feature, ms);
+    #endregion
 
     #region AutoHook
     public unsafe void SetAutoHookState(bool state) => AutoHookIPC.SetPluginState(state);
@@ -48,6 +58,7 @@ public class IpcCommands
     public unsafe void SetAutoHookPreset(string preset) => AutoHookIPC.SetPreset(preset);
     public unsafe void UseAutoHookAnonymousPreset(string preset) => AutoHookIPC.CreateAndSelectAnonymousPreset(preset);
     public unsafe void DeletedSelectedAutoHookPreset() => AutoHookIPC.DeleteSelectedPreset();
+    public unsafe void DeleteAllAutoHookAnonymousPresets() => AutoHookIPC.DeleteAllAnonymousPresets();
     #endregion
 
     #region Deliveroo
@@ -59,35 +70,44 @@ public class IpcCommands
     #endregion
 
     #region AutoRetainer
+    public unsafe void ARSetSuppressed(bool state) => _autoRetainerApi.Suppressed = state;
+
     public unsafe List<string> ARGetRegisteredCharacters() =>
-        _autoRetainerApi.GetRegisteredCharacters().AsParallel()
-        .Select(c => $"{_autoRetainerApi.GetOfflineCharacterData(c).Name}@{_autoRetainerApi.GetOfflineCharacterData(c).World}").ToList();
+        this._autoRetainerApi.GetRegisteredCharacters().AsParallel()
+        .Select(c => $"{this._autoRetainerApi.GetOfflineCharacterData(c).Name}@{this._autoRetainerApi.GetOfflineCharacterData(c).World}").ToList();
 
     public unsafe List<string> ARGetRegisteredEnabledCharacters() =>
-        _autoRetainerApi.GetRegisteredCharacters().AsParallel()
-        .Where(c => _autoRetainerApi.GetOfflineCharacterData(c).Enabled)
-        .Select(c => $"{_autoRetainerApi.GetOfflineCharacterData(c).Name}@{_autoRetainerApi.GetOfflineCharacterData(c).World}").ToList();
+        this._autoRetainerApi.GetRegisteredCharacters().AsParallel()
+        .Where(c => this._autoRetainerApi.GetOfflineCharacterData(c).Enabled)
+        .Select(c => $"{this._autoRetainerApi.GetOfflineCharacterData(c).Name}@{this._autoRetainerApi.GetOfflineCharacterData(c).World}").ToList();
 
-    public unsafe bool ARAnyWaitingToBeProcessed(bool allCharacters = false) =>
-        allCharacters ?
-        ARRetainersWaitingToBeProcessed(allCharacters) || ARSubsWaitingToBeProcessed(allCharacters) :
-        ARRetainersWaitingToBeProcessed() || ARSubsWaitingToBeProcessed();
+    public unsafe List<string> ARGetRegisteredRetainers() =>
+        this._autoRetainerApi.GetRegisteredCharacters().AsParallel()
+        .Select(c => this._autoRetainerApi.GetOfflineCharacterData(c).RetainerData.Select(r => r.Name)).SelectMany(names => names).ToList();
+
+    public unsafe List<string> ARGetRegisteredEnabledRetainers() =>
+        this._autoRetainerApi.GetRegisteredCharacters().AsParallel()
+        .Where(c => this._autoRetainerApi.GetOfflineCharacterData(c).Enabled)
+        .Select(c => this._autoRetainerApi.GetOfflineCharacterData(c).RetainerData
+        .Where(r => r.HasVenture).Select(r => r.Name)).SelectMany(names => names).ToList();
+
+    public unsafe bool ARAnyWaitingToBeProcessed(bool allCharacters = false) => this.ARRetainersWaitingToBeProcessed(allCharacters) || this.ARSubsWaitingToBeProcessed(allCharacters);
 
     public unsafe bool ARRetainersWaitingToBeProcessed(bool allCharacters = false)
     {
-        if (!allCharacters)
-            return _autoRetainerApi.GetOfflineCharacterData(Svc.ClientState.LocalContentId).RetainerData.AsParallel().Any(x => x.HasVenture && x.VentureEndsAt <= DateTime.Now.ToUnixTimestamp());
-        else
-            return _autoRetainerApi.GetRegisteredCharacters().AsParallel().Any(character => _autoRetainerApi.GetOfflineCharacterData(character).RetainerData.Any(x => x.HasVenture && x.VentureEndsAt <= DateTime.Now.ToUnixTimestamp()));
+        return !allCharacters
+            ? this._autoRetainerApi.GetOfflineCharacterData(Svc.ClientState.LocalContentId).RetainerData.AsParallel().Any(x => x.HasVenture && x.VentureEndsAt <= DateTime.Now.ToUnixTimestamp())
+            : this.GetAllEnabledCharacters().Any(character => this._autoRetainerApi.GetOfflineCharacterData(character).RetainerData.Any(x => x.HasVenture && x.VentureEndsAt <= DateTime.Now.ToUnixTimestamp()));
     }
 
     public unsafe bool ARSubsWaitingToBeProcessed(bool allCharacters = false)
     {
-        if (!allCharacters)
-            return _autoRetainerApi.GetOfflineCharacterData(Svc.ClientState.LocalContentId).OfflineSubmarineData.AsParallel().Any(x => x.ReturnTime <= DateTime.Now.ToUnixTimestamp());
-        else
-            return _autoRetainerApi.GetRegisteredCharacters().AsParallel().Any(character => _autoRetainerApi.GetOfflineCharacterData(character).OfflineSubmarineData.Any(x => x.ReturnTime <= DateTime.Now.ToUnixTimestamp()));
+        return !allCharacters
+            ? this._autoRetainerApi.GetOfflineCharacterData(Svc.ClientState.LocalContentId).OfflineSubmarineData.AsParallel().Any(x => x.ReturnTime <= DateTime.Now.ToUnixTimestamp())
+            : this.GetAllEnabledCharacters().Any(c => this._autoRetainerApi.GetOfflineCharacterData(c).OfflineSubmarineData.Any(x => x.ReturnTime <= DateTime.Now.ToUnixTimestamp()));
     }
+
+    private unsafe ParallelQuery<ulong> GetAllEnabledCharacters() => this._autoRetainerApi.GetRegisteredCharacters().AsParallel().Where(c => this._autoRetainerApi.GetOfflineCharacterData(c).Enabled);
     #endregion
 
     #region YesAlready
@@ -102,10 +122,29 @@ public class IpcCommands
 
     public void RestoreYesAlready()
     {
-        if (Svc.PluginInterface.TryGetData<HashSet<string>>("YesAlready.StopRequests", out var data) &&
-            data.Contains(nameof(SomethingNeedDoing)))
+        if (Svc.PluginInterface.TryGetData<HashSet<string>>("YesAlready.StopRequests", out var data) && data.Contains(nameof(SomethingNeedDoing)))
         {
             Svc.Log.Debug("Restoring YesAlready");
+            data.Remove(nameof(SomethingNeedDoing));
+        }
+    }
+    #endregion
+
+    #region TextAdvance
+    internal static void PauseTextAdvance()
+    {
+        if (Svc.PluginInterface.TryGetData<HashSet<string>>("TextAdvance.StopRequests", out var data) && !data.Contains(nameof(SomethingNeedDoing)))
+        {
+            Svc.Log.Debug("Disabling TextAdvance");
+            data.Add(nameof(SomethingNeedDoing));
+        }
+    }
+
+    internal static void RestoreTextAdvance()
+    {
+        if (Svc.PluginInterface.TryGetData<HashSet<string>>("TextAdvance.StopRequests", out var data) && data.Contains(nameof(SomethingNeedDoing)))
+        {
+            Svc.Log.Debug("Restoring TextAdvance");
             data.Remove(nameof(SomethingNeedDoing));
         }
     }

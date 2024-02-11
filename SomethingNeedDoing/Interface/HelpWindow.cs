@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text;
@@ -14,8 +9,12 @@ using ECommons;
 using ECommons.DalamudServices;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using SomethingNeedDoing.Misc;
 using SomethingNeedDoing.Misc.Commands;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Threading.Tasks;
 
 namespace SomethingNeedDoing.Interface;
 
@@ -328,6 +327,48 @@ internal class HelpWindow : Window
         ImGui.PushFont(UiBuilder.MonoFont);
 
         DisplayChangelog(
+        "2024-02-11",
+        "- Added the ability to toggle ending scripts when encountering certain errors.\n" +
+        "- Added an alternative system for /useitem\n");
+
+        DisplayChangelog(
+        "2024-02-09",
+        "- Added GetCurrentBait()\n" +
+        "- Added GetLimitBreakCurrentValue()\n" +
+        "- Added GetLimitBreakBarValue()\n" +
+        "- Added GetLimitBreakBarCount()\n");
+
+        DisplayChangelog(
+        "2024-02-07",
+        "- Added more global variables\n");
+
+        DisplayChangelog(
+        "2024-02-06",
+        "- Added DeleteAllAutoHookAnonymousPresets()\n" +
+        "- Added ARGetRegisteredRetainers()\n" +
+        "- Added ARGetRegisteredEnabledRetainers()\n" +
+        "- Added ARSetSuppressed()\n");
+
+        DisplayChangelog(
+        "2024-02-05",
+        "- Added many global variables usable in any script now. See help menu for a brief explanation.\n");
+
+        DisplayChangelog(
+         "2024-02-04",
+         "- Fixed the AR character query commands to only check enabled characters\n" +
+         "- Added PauseTextAdvance()\n" +
+         "- Added RestoreTextAdvance()\n" +
+         "- Added PandoraGetFeatureEnabled()\n" +
+         "- Added PandoraGetFeatureConfigEnabled()\n" +
+         "- Added PandoraSetFeatureState()\n" +
+         "- Added PandoraSetFeatureConfigState()\n" +
+         "- Added PandoraPauseFeature()\n\n" +
+         "- Added GetClipboard()\n" +
+         "- Added SetClipboard()\n" +
+         "- Added CrashTheGame()\n" +
+         "- Added IsPlayerOccupied()\n");
+
+        DisplayChangelog(
          "2024-02-01",
          "- Added GetTargetHP()\n" +
          "- Added GetTargetHPP()\n\n" +
@@ -377,9 +418,9 @@ internal class HelpWindow : Window
          "2024-01-29",
          "- Added TeleportToGCTown()\n" +
          "- Added GetPlayerGC()\n" +
-         "- Added GetActiveFates() [EXPERIMENTAL]\n" +
-         "- Added ARGetRegisteredCharacters() [EXPERIMENTAL]\n" +
-         "- Added ARGetRegisteredEnabledCharacters() [EXPERIMENTAL]\n" +
+         "- Added GetActiveFates()\n" +
+         "- Added ARGetRegisteredCharacters()\n" +
+         "- Added ARGetRegisteredEnabledCharacters()\n" +
          "- Added IsVislandRouteRunning()\n" +
          "- Added GetToastNodeText()\n" +
          "- Added PauseYesAlready()\n" +
@@ -446,7 +487,7 @@ internal class HelpWindow : Window
         DisplayChangelog(
             "2024-01-21",
             "- Added GetInventoryFreeSlotCount()\n");
-        
+
         DisplayChangelog(
           "2024-01-18",
           "- Added GetTargetRawXPos()\n" +
@@ -900,6 +941,42 @@ internal class HelpWindow : Window
             }
         }
 
+        if (ImGui.CollapsingHeader("/action"))
+        {
+            var stopMacro = Service.Configuration.StopMacroIfActionTimeout;
+            if (ImGui.Checkbox("Stop macro if /action times out", ref stopMacro))
+            {
+                Service.Configuration.StopMacroIfActionTimeout = stopMacro;
+                Service.Configuration.Save();
+            }
+        }
+
+        if (ImGui.CollapsingHeader("/item"))
+        {
+            var defaultUseItem = Service.Configuration.UseItemStructsVersion;
+            if (ImGui.Checkbox("Use SND's /useitem system", ref defaultUseItem))
+            {
+                Service.Configuration.UseItemStructsVersion = defaultUseItem;
+                Service.Configuration.Save();
+            }
+
+            DisplayOption("- Does not support stopping the macro if any error occurs.");
+
+            var stopMacroNotFound = Service.Configuration.StopMacroIfItemNotFound;
+            if (ImGui.Checkbox("Stop macro if the item to use is not found (only applies to SND's /useitem system)", ref stopMacroNotFound))
+            {
+                Service.Configuration.StopMacroIfItemNotFound = stopMacroNotFound;
+                Service.Configuration.Save();
+            }
+
+            var stopMacro = Service.Configuration.StopMacroIfCantUseItem;
+            if (ImGui.Checkbox("Stop macro if you cannot use an item (only applies to SND's /useitem system)", ref stopMacro))
+            {
+                Service.Configuration.StopMacroIfCantUseItem = stopMacro;
+                Service.Configuration.Save();
+            }
+        }
+
         if (ImGui.CollapsingHeader("/target"))
         {
             var defaultTarget = Service.Configuration.UseSNDTargeting;
@@ -909,14 +986,31 @@ internal class HelpWindow : Window
                 Service.Configuration.Save();
             }
 
-            var stopMacroIfNoTarget = Service.Configuration.StopMacroIfTargetNotFound;
-            if (ImGui.Checkbox("Stop macro if target not found (only applies to SND's targeting system).", ref stopMacroIfNoTarget))
+            DisplayOption("- Override the behaviour of /target with SND's system.");
+
+            var stopMacro = Service.Configuration.StopMacroIfTargetNotFound;
+            if (ImGui.Checkbox("Stop macro if target not found (only applies to SND's targeting system).", ref stopMacro))
             {
-                Service.Configuration.StopMacroIfTargetNotFound = stopMacroIfNoTarget;
+                Service.Configuration.StopMacroIfTargetNotFound = stopMacro;
+                Service.Configuration.Save();
+            }
+        }
+
+        if (ImGui.CollapsingHeader("/waitaddon"))
+        {
+            var stopMacro = Service.Configuration.StopMacroIfAddonNotFound;
+            if (ImGui.Checkbox("Stop macro if the requested addon is not found", ref stopMacro))
+            {
+                Service.Configuration.StopMacroIfAddonNotFound = stopMacro;
                 Service.Configuration.Save();
             }
 
-            DisplayOption("- Override the behaviour of /target with SND's system.");
+            var stopMacroVisible = Service.Configuration.StopMacroIfAddonNotVisible;
+            if (ImGui.Checkbox("Stop macro if the requested addon is not visible", ref stopMacroVisible))
+            {
+                Service.Configuration.StopMacroIfAddonNotVisible = stopMacroVisible;
+                Service.Configuration.Save();
+            }
         }
 
         ImGui.PopFont();
@@ -1014,7 +1108,18 @@ For example:
 yield(""/ac Muscle memory <wait.3>"")
 yield(""/ac Precise touch <wait.2>"")
 yield(""/echo done!"")
-...and so on.".Trim();
+...and so on.
+
+Every script is able to access these global variables:
+Interface, IClientState, IGameGui, IDataManager, IBuddyList, IChatGui, ICommandManager, ICondition, IFateTable, IFlyTextGui, IFramework, IGameNetwork, IJobGauges, IKeyState, ILibcFunction, IObjectTable, IPartyFinderGui, IPartyList, ISigScanner, ITargetManager, IToastGui, IGameConfig, IGameLifecycle, IGamepadState, IDtrBar, IDutyState, IGameInteropProvider, ITextureProvider, IPluginLog, IAddonLifecycle, IAetheryteList, IAddonEventManager, ITextureSubstitution, ITitleScreenMenu,
+
+ActionManager, AgentMap, EnvManager, EventFramework, FateManager, Framework, InventoryManager, LimitBreakController, PlayerState, QuestManager, RouletteController, UIState
+
+They are Dalamud services, whose code is available here
+https://github.com/goatcorp/Dalamud/tree/master/Dalamud/Plugin/Services.
+
+Many custom functions in SND are simple wrappers around these, but with the global variables
+you can get many properties and functions directly without them needing wrappers added to SND itself.".Trim();
 
         ImGui.TextWrapped(text);
         ImGui.Separator();
@@ -1025,11 +1130,12 @@ yield(""/echo done!"")
             (nameof(AddonCommands), AddonCommands.Instance),
             (nameof(CharacterStateCommands), CharacterStateCommands.Instance),
             (nameof(CraftingCommands), CraftingCommands.Instance),
+            (nameof(EntityStateCommands), EntityStateCommands.Instance),
             (nameof(InventoryCommands), InventoryCommands.Instance),
             (nameof(IpcCommands), IpcCommands.Instance),
             (nameof(QuestCommands), QuestCommands.Instance),
-            (nameof(EntityStateCommands), EntityStateCommands.Instance),
-            (nameof(WorldStateCommands), WorldStateCommands.Instance)
+            (nameof(SystemCommands), SystemCommands.Instance),
+            (nameof(WorldStateCommands), WorldStateCommands.Instance),
         };
 
         foreach (var (commandName, commandInstance) in commands)
@@ -1123,7 +1229,8 @@ yield(""/echo done!"")
                 ("Weather", this.DrawWeather),
                 ("CFC", this.DrawCFC),
                 ("Duty Roulette", this.DrawDutyRoulette),
-                ("Ocean Fishing Routes", this.DrawOceanFishingSpots),
+                //("Ocean Fishing Routes", this.DrawOceanFishingRoutes),
+                ("Fishing Spots", this.DrawOceanFishingSpots),
                 ("Achievements", this.DrawAchievements),
             };
 
@@ -1144,7 +1251,7 @@ yield(""/echo done!"")
             ImGui.EndTabBar();
         }
 
-        ImGui.EndChild();  
+        ImGui.EndChild();
     }
 
     private readonly IEnumerable<Achievement> achievementsSheet = Svc.Data.GetExcelSheet<Achievement>(Svc.ClientState.ClientLanguage)!.Where(x => !x.Name.RawString.IsNullOrEmpty());
@@ -1152,7 +1259,7 @@ yield(""/echo done!"")
     {
         using var font = ImRaii.PushFont(UiBuilder.MonoFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
-        foreach (var w in achievementsSheet)
+        foreach (var w in this.achievementsSheet)
         {
             ImGui.Text($"{w.RowId}: {w.Name}");
         }
@@ -1164,19 +1271,31 @@ yield(""/echo done!"")
     {
         using var font = ImRaii.PushFont(UiBuilder.MonoFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
-        foreach (var w in fishingSpotsSheet)
+        foreach (var w in this.fishingSpotsSheet)
         {
             ImGui.Text($"{w.RowId}: {w.PlaceName.Value!.Name}");
         }
         ImGui.PopStyleColor();
     }
 
+    //private readonly IEnumerable<IKDRoute> fishingRoutesSheet = Svc.Data.GetExcelSheet<IKDRoute>(Svc.ClientState.ClientLanguage)!.Where(x => x.RowId != 0);
+    //private void DrawOceanFishingRoutes()
+    //{
+    //    using var font = ImRaii.PushFont(UiBuilder.MonoFont);
+    //    ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+    //    foreach (var w in fishingRoutesSheet)
+    //    {
+    //        ImGui.Text($"{w.RowId}: {string.Join(" ", w.UnkData0.ToList())}");
+    //    }
+    //    ImGui.PopStyleColor();
+    //}
+
     private readonly IEnumerable<ContentRoulette> rouletteSheet = Svc.Data.GetExcelSheet<ContentRoulette>(Svc.ClientState.ClientLanguage)!.Where(x => !x.Name.RawString.IsNullOrEmpty());
     private void DrawDutyRoulette()
     {
         using var font = ImRaii.PushFont(UiBuilder.MonoFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
-        foreach (var w in rouletteSheet)
+        foreach (var w in this.rouletteSheet)
         {
             ImGui.Text($"{w.RowId}: {w.Name}");
         }
@@ -1188,7 +1307,7 @@ yield(""/echo done!"")
     {
         using var font = ImRaii.PushFont(UiBuilder.MonoFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
-        foreach (var w in cfcSheet)
+        foreach (var w in this.cfcSheet)
         {
             ImGui.Text($"{w.RowId}: {w.Name}");
         }
@@ -1200,7 +1319,7 @@ yield(""/echo done!"")
     {
         using var font = ImRaii.PushFont(UiBuilder.MonoFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
-        foreach (var w in weatherSheet)
+        foreach (var w in this.weatherSheet)
         {
             ImGui.Text($"{w.RowId}: {w.Name}");
         }
@@ -1212,7 +1331,7 @@ yield(""/echo done!"")
     {
         using var font = ImRaii.PushFont(UiBuilder.MonoFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
-        foreach (var cj in classJobSheet)
+        foreach (var cj in this.classJobSheet)
         {
             ImGui.Text($"{cj.RowId}: {cj.Name}; ExpArrayIndex={cj.ExpArrayIndex}");
         }
