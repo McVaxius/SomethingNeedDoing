@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Reflection.Emit;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text;
@@ -15,8 +8,13 @@ using Dalamud.Interface.Windowing;
 using ECommons;
 using ECommons.DalamudServices;
 using ImGuiNET;
-using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
+using SomethingNeedDoing.Misc.Commands;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Threading.Tasks;
 
 namespace SomethingNeedDoing.Interface;
 
@@ -231,10 +229,17 @@ internal class HelpWindow : Window
             }),
         (
             "index",
-            "For supported commands, specify the index. For example, when there are multiple targets with the same name.",
+            "For supported commands, specify the object index. For example, when there are multiple targets with the same name.",
             new[]
             {
                 "/target abc <index.5>",
+            }),
+        (
+            "list",
+            "For supported commands, specify the index to check. For example, when there are multiple targets with the same name.",
+            new[]
+            {
+                "/target abc <list.5>",
             }),
     };
 
@@ -320,6 +325,182 @@ internal class HelpWindow : Window
         }
 
         ImGui.PushFont(UiBuilder.MonoFont);
+
+        DisplayChangelog(
+        "2024-02-17",
+        "- Added GetTargetMaxHP()\n" +
+        "- Fixed GetTargetHPP()\n");
+
+        DisplayChangelog(
+        "2024-02-11",
+        "- Added the ability to toggle ending scripts when encountering certain errors.\n" +
+        "- Added an alternative system for /useitem\n");
+
+        DisplayChangelog(
+        "2024-02-09",
+        "- Added GetCurrentBait()\n" +
+        "- Added GetLimitBreakCurrentValue()\n" +
+        "- Added GetLimitBreakBarValue()\n" +
+        "- Added GetLimitBreakBarCount()\n");
+
+        DisplayChangelog(
+        "2024-02-07",
+        "- Added more global variables\n");
+
+        DisplayChangelog(
+        "2024-02-06",
+        "- Added DeleteAllAutoHookAnonymousPresets()\n" +
+        "- Added ARGetRegisteredRetainers()\n" +
+        "- Added ARGetRegisteredEnabledRetainers()\n" +
+        "- Added ARSetSuppressed()\n");
+
+        DisplayChangelog(
+        "2024-02-05",
+        "- Added many global variables usable in any script now. See help menu for a brief explanation.\n");
+
+        DisplayChangelog(
+         "2024-02-04",
+         "- Fixed the AR character query commands to only check enabled characters\n" +
+         "- Added PauseTextAdvance()\n" +
+         "- Added RestoreTextAdvance()\n" +
+         "- Added PandoraGetFeatureEnabled()\n" +
+         "- Added PandoraGetFeatureConfigEnabled()\n" +
+         "- Added PandoraSetFeatureState()\n" +
+         "- Added PandoraSetFeatureConfigState()\n" +
+         "- Added PandoraPauseFeature()\n\n" +
+         "- Added GetClipboard()\n" +
+         "- Added SetClipboard()\n" +
+         "- Added CrashTheGame()\n" +
+         "- Added IsPlayerOccupied()\n");
+
+        DisplayChangelog(
+         "2024-02-01",
+         "- Added GetTargetHP()\n" +
+         "- Added GetTargetHPP()\n\n" +
+         "- Added RequestAchievementProgress()\n" +
+         "- Added GetRequestedAchievementProgress()\n\n" +
+         "- Added GetContentTimeLeft()\n" +
+         "- Replaced GetCurrentOceanFishingDuration() with GetCurrentOceanFishingZoneTimeLeft()\n" +
+         "- Added GetCurrentOceanFishingScore()\n" +
+         "- Added GetCurrentOceanFishingTimeOfDay()\n" +
+         "- Added GetCurrentOceanFishingMission1Goal()\n" +
+         "- Added GetCurrentOceanFishingMission2Goal()\n" +
+         "- Added GetCurrentOceanFishingMission3Goal()\n" +
+         "- Added GetCurrentOceanFishingMission1Name()\n" +
+         "- Added GetCurrentOceanFishingMission2Name()\n" +
+         "- Added GetCurrentOceanFishingMission3Name()\n\n" +
+         "- Added SetAutoHookState()\n" +
+         "- Added SetAutoHookAutoGigState()\n" +
+         "- Added SetAutoHookAutoGigSize()\n" +
+         "- Added SetAutoHookAutoGigSpeed()\n" +
+         "- Added SetAutoHookPreset()\n" +
+         "- Added UseAutoHookAnonymousPreset()\n" +
+         "- Added DeleteSelectedAutoHookPreset()\n");
+
+        DisplayChangelog(
+         "2024-01-30",
+         "- Added GetObjectRawXPos()\n" +
+         "- Added GetObjectRawYPos()\n" +
+         "- Added GetObjectRawZPos()\n" +
+         "- Added GetCurrentOceanFishingRoute()\n" +
+         "- Added GetCurrentOceanFishingStatus()\n" +
+         "- Added GetCurrentOceanFishingZone()\n" +
+         "- Added GetCurrentOceanFishingDuration()\n" +
+         "- Added GetCurrentOceanFishingTimeOffset()\n" +
+         "- Added GetCurrentOceanFishingWeatherID()\n" +
+         "- Added OceanFishingIsSpectralActive()\n" +
+         "- Added GetCurrentOceanFishingMission1Type()\n" +
+         "- Added GetCurrentOceanFishingMission2Type()\n" +
+         "- Added GetCurrentOceanFishingMission3Type()\n" +
+         "- Added GetCurrentOceanFishingMission1Progress()\n" +
+         "- Added GetCurrentOceanFishingMission2Progress()\n" +
+         "- Added GetCurrentOceanFishingMission3Progress()\n" +
+         "- Added GetCurrentOceanFishingPoints()\n" +
+         "- Added GetCurrentOceanFishingTotalScore()\n" +
+         "- Added \"Ocean Fishing Routes\" to the Game Data tab");
+
+        DisplayChangelog(
+         "2024-01-29",
+         "- Added TeleportToGCTown()\n" +
+         "- Added GetPlayerGC()\n" +
+         "- Added GetActiveFates()\n" +
+         "- Added ARGetRegisteredCharacters()\n" +
+         "- Added ARGetRegisteredEnabledCharacters()\n" +
+         "- Added IsVislandRouteRunning()\n" +
+         "- Added GetToastNodeText()\n" +
+         "- Added PauseYesAlready()\n" +
+         "- Added RestoreYesAlready()\n\n" +
+         "- Added OpenRouletteDuty()\n" +
+         "- Added OpenRegularDuty()\n" +
+         "- Added CFC and Roulette entries to the GameData section in help for using the above two functions\n");
+
+        DisplayChangelog(
+          "2024-01-27",
+          "- Added IsInFate()\n" +
+          "- Added GetNearestFate()\n" +
+          "- Added GetFateDuration()\n" +
+          "- Added GetFateHandInCount()\n" +
+          "- Added GetFateLocationX()\n" +
+          "- Added GetFateLocationY()\n" +
+          "- Added GetFateLocationZ()\n" +
+          "- Added GetFateProgress()\n\n" +
+          "- Added GetCurrentEorzeaTimestamp()\n" +
+          "- Added GetCurrentEorzeaSecond()\n" +
+          "- Added GetCurrentEorzeaMinute()\n" +
+          "- Added GetCurrentEorzeaHour()\n\n" +
+          "- Added GetDistanceToObject()\n");
+
+        DisplayChangelog(
+          "2024-01-26",
+          "- Added GetRecastTimeElapsed()\n" +
+          "- Added GetRealRecastTimeElapsed()\n" +
+          "- Added GetRecastTime()\n" +
+          "- Added GetRealRecastTime()\n" +
+          "- Added GetSpellCooldown()\n" +
+          "- Added GetRealSpellCooldown()\n" +
+          "- Added GetSpellCooldownInt()\n" +
+          "- Added GetActionStackCount()\n\n" +
+          "- Added GetStatusStackCount()\n" +
+          "- Added GetStatusTimeRemaining()\n" +
+          "- Added GetStatusSourceID()\n\n" +
+          "- Added GetFCGrandCompany()\n" +
+          "- Added GetFCOnlineMembers()\n" +
+          "- Added GetFCTotalMembers()\n");
+
+        DisplayChangelog(
+            "2024-01-25",
+            "- Added IsTargetCasting()\n" +
+            "- Added GetTargetActionID()\n" +
+            "- Added GetTargetUsedActionID()\n" +
+            "- Changed the Lua menu to be more dynamic with listing functions\n");
+
+        DisplayChangelog(
+            "2024-01-24",
+            "- Added GetActiveWeatherID()\n" +
+            "- Added a section in the help menu to decipher weather IDs.\n");
+
+        DisplayChangelog(
+            "2024-01-23",
+            "- Added new <list.listIndex> modifier. Used for /target where you're searching for targets with the same name.\n");
+
+        DisplayChangelog(
+            "2024-01-22",
+            "- Added ARAnyWaitingToBeProcessed()\n" +
+            "- Added ARRetainersWaitingToBeProcessed()\n" +
+            "- Added ARSubsWaitingToBeProcessed()\n");
+
+        DisplayChangelog(
+            "2024-01-21",
+            "- Added GetInventoryFreeSlotCount()\n");
+
+        DisplayChangelog(
+          "2024-01-18",
+          "- Added GetTargetRawXPos()\n" +
+          "- Added GetTargetRawYPos()\n" +
+          "- Added GetTargetRawZPos()\n" +
+          "- Added GetDistanceToTarget()\n" +
+          "- Added GetFlagXCoord()\n" +
+          "- Added GetFlagYCoord()\n");
 
         DisplayChangelog(
           "2024-01-04",
@@ -765,6 +946,42 @@ internal class HelpWindow : Window
             }
         }
 
+        if (ImGui.CollapsingHeader("/action"))
+        {
+            var stopMacro = Service.Configuration.StopMacroIfActionTimeout;
+            if (ImGui.Checkbox("Stop macro if /action times out", ref stopMacro))
+            {
+                Service.Configuration.StopMacroIfActionTimeout = stopMacro;
+                Service.Configuration.Save();
+            }
+        }
+
+        if (ImGui.CollapsingHeader("/item"))
+        {
+            var defaultUseItem = Service.Configuration.UseItemStructsVersion;
+            if (ImGui.Checkbox("Use SND's /useitem system", ref defaultUseItem))
+            {
+                Service.Configuration.UseItemStructsVersion = defaultUseItem;
+                Service.Configuration.Save();
+            }
+
+            DisplayOption("- Does not support stopping the macro if any error occurs.");
+
+            var stopMacroNotFound = Service.Configuration.StopMacroIfItemNotFound;
+            if (ImGui.Checkbox("Stop macro if the item to use is not found (only applies to SND's /useitem system)", ref stopMacroNotFound))
+            {
+                Service.Configuration.StopMacroIfItemNotFound = stopMacroNotFound;
+                Service.Configuration.Save();
+            }
+
+            var stopMacro = Service.Configuration.StopMacroIfCantUseItem;
+            if (ImGui.Checkbox("Stop macro if you cannot use an item (only applies to SND's /useitem system)", ref stopMacro))
+            {
+                Service.Configuration.StopMacroIfCantUseItem = stopMacro;
+                Service.Configuration.Save();
+            }
+        }
+
         if (ImGui.CollapsingHeader("/target"))
         {
             var defaultTarget = Service.Configuration.UseSNDTargeting;
@@ -774,14 +991,31 @@ internal class HelpWindow : Window
                 Service.Configuration.Save();
             }
 
-            var stopMacroIfNoTarget = Service.Configuration.StopMacroIfTargetNotFound;
-            if (ImGui.Checkbox("Stop macro if target not found (only applies to SND's targeting system).", ref stopMacroIfNoTarget))
+            DisplayOption("- Override the behaviour of /target with SND's system.");
+
+            var stopMacro = Service.Configuration.StopMacroIfTargetNotFound;
+            if (ImGui.Checkbox("Stop macro if target not found (only applies to SND's targeting system).", ref stopMacro))
             {
-                Service.Configuration.StopMacroIfTargetNotFound = stopMacroIfNoTarget;
+                Service.Configuration.StopMacroIfTargetNotFound = stopMacro;
+                Service.Configuration.Save();
+            }
+        }
+
+        if (ImGui.CollapsingHeader("/waitaddon"))
+        {
+            var stopMacro = Service.Configuration.StopMacroIfAddonNotFound;
+            if (ImGui.Checkbox("Stop macro if the requested addon is not found", ref stopMacro))
+            {
+                Service.Configuration.StopMacroIfAddonNotFound = stopMacro;
                 Service.Configuration.Save();
             }
 
-            DisplayOption("- Override the behaviour of /target with SND's system.");
+            var stopMacroVisible = Service.Configuration.StopMacroIfAddonNotVisible;
+            if (ImGui.Checkbox("Stop macro if the requested addon is not visible", ref stopMacroVisible))
+            {
+                Service.Configuration.StopMacroIfAddonNotVisible = stopMacroVisible;
+                Service.Configuration.Save();
+            }
         }
 
         ImGui.PopFont();
@@ -881,105 +1115,42 @@ yield(""/ac Precise touch <wait.2>"")
 yield(""/echo done!"")
 ...and so on.
 
-Documentation for these functions are available at:
-https://github.com/daemitus/SomethingNeedDoing/blob/master/SomethingNeedDoing/Misc/ICommandInterface.cs
+Every script is able to access these global variables:
+Interface, IClientState, IGameGui, IDataManager, IBuddyList, IChatGui, ICommandManager, ICondition, IFateTable, IFlyTextGui, IFramework, IGameNetwork, IJobGauges, IKeyState, ILibcFunction, IObjectTable, IPartyFinderGui, IPartyList, ISigScanner, ITargetManager, IToastGui, IGameConfig, IGameLifecycle, IGamepadState, IDtrBar, IDutyState, IGameInteropProvider, ITextureProvider, IPluginLog, IAddonLifecycle, IAetheryteList, IAddonEventManager, ITextureSubstitution, ITitleScreenMenu,
 
-===Available functions===
-bool IsCrafting()
-bool IsNotCrafting()
-bool IsCollectable()
+ActionManager, AgentMap, EnvManager, EventFramework, FateManager, Framework, InventoryManager, LimitBreakController, PlayerState, QuestManager, RouletteController, UIState
 
-// lower: Get the condition in lowercase
-string GetCondition(bool lower = true)
+They are Dalamud services, whose code is available here
+https://github.com/goatcorp/Dalamud/tree/master/Dalamud/Plugin/Services.
 
-// condition: The condition name, as displayed in the UI
-// lower:     Get the condition in lowercase
-bool HasCondition(string condition, bool lower = true)
-
-int GetProgress()
-int GetMaxProgress()
-bool HasMaxProgress()
-
-int GetQuality()
-int GetMaxQuality()
-bool HasMaxQuality()
-
-int GetDurability()
-int GetMaxDurability()
-
-int GetCp()
-int GetMaxCp()
-
-int GetStep()
-int GetPercentHQ()
-bool NeedsRepair()
-
-// within: Return false if the next highest spiritbond is >= the within value.
-bool CanExtractMateria(float within = 100)
-
-bool HasStats(uint craftsmanship, uint control, uint cp)
-
-// name: status effect name
-bool HasStatus(string name)
-
-// id: status effect id(s).
-bool HasStatusId(uint id, ...)
-
-bool IsAddonVisible(string addonName)
-bool IsNodeVisible(string addonName, int node)
-bool IsAddonReady(string addonName)
-
-// Can fetch nested nodes
-string GetNodeText(string addonName, int nodeNumber, ...)
-
-string GetSelectStringText(int index)
-string GetSelectIconStringText(int index)
-
-bool GetCharacterCondition(int flagID, bool hasCondition = true)
-
-bool IsInZone(int zoneID)
-int GetZoneID()
-
-string GetCharacterName(bool includeWorld = false)
-
-int GetItemCount(int itemID, bool includeHQ = true)
-
-bool DeliverooIsTurnInRunning()
-
-uint GetProgressIncrease(uint actionID)
-uint GetQualityIncrease(uint actionID)
-
-void LeaveDuty()
-
-bool IsLocalPlayerNull()
-bool IsPlayerDead()
-bool IsPlayerCasting()
-bool IsMoving()
-
-uint GetGil()
-
-uint GetClassJobId()
-
-// if you pass an invalid name or party position it will return -1
-float GetPlayerRawXPos(string character = "")
-float GetPlayerRawYPos(string character = "")
-float GetPlayerRawZPos(string character = "")
-float GetDistanceToPoint(float x, float y, float z))
-
-int GetLevel(uint ExpArrayIndex = -1)
-
-string GetQuestNameByID(ushort id)
-bool IsQuestAccepted(ushort id)
-bool IsQuestComplete(ushort id)
-byte GetQuestSequence(ushort id)
-uint? GetQuestIDByName(string name)
-
-int GetNodeListCount(string addonName)
-
-string GetTargetName()
-".Trim();
+Many custom functions in SND are simple wrappers around these, but with the global variables
+you can get many properties and functions directly without them needing wrappers added to SND itself.".Trim();
 
         ImGui.TextWrapped(text);
+        ImGui.Separator();
+
+        var commands = new List<(string, dynamic)>
+        {
+            (nameof(ActionCommands), ActionCommands.Instance),
+            (nameof(AddonCommands), AddonCommands.Instance),
+            (nameof(CharacterStateCommands), CharacterStateCommands.Instance),
+            (nameof(CraftingCommands), CraftingCommands.Instance),
+            (nameof(EntityStateCommands), EntityStateCommands.Instance),
+            (nameof(InventoryCommands), InventoryCommands.Instance),
+            (nameof(IpcCommands), IpcCommands.Instance),
+            (nameof(QuestCommands), QuestCommands.Instance),
+            (nameof(SystemCommands), SystemCommands.Instance),
+            (nameof(WorldStateCommands), WorldStateCommands.Instance),
+        };
+
+        foreach (var (commandName, commandInstance) in commands)
+        {
+            ImGui.Text($"{commandName}");
+            ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+            ImGui.TextWrapped(string.Join("\n", commandInstance.ListAllFunctions()));
+            ImGui.PopStyleColor();
+            ImGui.Separator();
+        }
 
         ImGui.PopFont();
     }
@@ -988,7 +1159,7 @@ string GetTargetName()
     {
         ImGui.PushFont(UiBuilder.MonoFont);
 
-        ImGui.TextWrapped("Refer to https://github.com/daemitus/ClickLib/tree/master/ClickLib/Clicks for any details.");
+        ImGui.TextWrapped("Refer to https://github.com/Limiana/ClickLib/tree/master/ClickLib/Clicks for any details.");
         ImGui.Separator();
 
         foreach (var name in this.clickNames)
@@ -1053,19 +1224,121 @@ string GetTargetName()
         }
     }
 
-    private readonly IEnumerable<ClassJob> classJobSheet = Svc.Data.GetExcelSheet<ClassJob>(Svc.ClientState.ClientLanguage)!.Where(x => !x.Name.RawString.IsNullOrEmpty());
     private void DrawGameData()
     {
-        using var font = ImRaii.PushFont(UiBuilder.MonoFont);
-
-        ImGui.TextWrapped("Misc Game Data Information");
-        ImGui.Separator();
-
-        ImGui.TextWrapped("ClassJob");
-        ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
-        foreach (var cj in classJobSheet)
+        if (ImGui.BeginTabBar("GameDataTab"))
         {
-            ImGui.Text($"{cj.Name}: Key={cj.RowId}; ExpArrayIndex={cj.ExpArrayIndex}");
+            var tabs = new (string Title, System.Action Dele)[]
+            {
+                ("ClassJob", this.DrawClassJob),
+                ("Weather", this.DrawWeather),
+                ("CFC", this.DrawCFC),
+                ("Duty Roulette", this.DrawDutyRoulette),
+                //("Ocean Fishing Routes", this.DrawOceanFishingRoutes),
+                ("Fishing Spots", this.DrawOceanFishingSpots),
+                ("Achievements", this.DrawAchievements),
+            };
+
+            foreach (var (title, dele) in tabs)
+            {
+                if (ImGui.BeginTabItem(title))
+                {
+                    ImGui.BeginChild("scrolling", new Vector2(0, -1), false);
+
+                    dele();
+
+                    ImGui.EndChild();
+
+                    ImGui.EndTabItem();
+                }
+            }
+
+            ImGui.EndTabBar();
+        }
+
+        ImGui.EndChild();
+    }
+
+    private readonly IEnumerable<Achievement> achievementsSheet = Svc.Data.GetExcelSheet<Achievement>(Svc.ClientState.ClientLanguage)!.Where(x => !x.Name.RawString.IsNullOrEmpty());
+    private void DrawAchievements()
+    {
+        using var font = ImRaii.PushFont(UiBuilder.MonoFont);
+        ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+        foreach (var w in this.achievementsSheet)
+        {
+            ImGui.Text($"{w.RowId}: {w.Name}");
+        }
+        ImGui.PopStyleColor();
+    }
+
+    private readonly IEnumerable<FishingSpot> fishingSpotsSheet = Svc.Data.GetExcelSheet<FishingSpot>(Svc.ClientState.ClientLanguage)!.Where(x => x.PlaceNameMain.Value?.RowId != 0);
+    private void DrawOceanFishingSpots()
+    {
+        using var font = ImRaii.PushFont(UiBuilder.MonoFont);
+        ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+        foreach (var w in this.fishingSpotsSheet)
+        {
+            ImGui.Text($"{w.RowId}: {w.PlaceName.Value!.Name}");
+        }
+        ImGui.PopStyleColor();
+    }
+
+    //private readonly IEnumerable<IKDRoute> fishingRoutesSheet = Svc.Data.GetExcelSheet<IKDRoute>(Svc.ClientState.ClientLanguage)!.Where(x => x.RowId != 0);
+    //private void DrawOceanFishingRoutes()
+    //{
+    //    using var font = ImRaii.PushFont(UiBuilder.MonoFont);
+    //    ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+    //    foreach (var w in fishingRoutesSheet)
+    //    {
+    //        ImGui.Text($"{w.RowId}: {string.Join(" ", w.UnkData0.ToList())}");
+    //    }
+    //    ImGui.PopStyleColor();
+    //}
+
+    private readonly IEnumerable<ContentRoulette> rouletteSheet = Svc.Data.GetExcelSheet<ContentRoulette>(Svc.ClientState.ClientLanguage)!.Where(x => !x.Name.RawString.IsNullOrEmpty());
+    private void DrawDutyRoulette()
+    {
+        using var font = ImRaii.PushFont(UiBuilder.MonoFont);
+        ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+        foreach (var w in this.rouletteSheet)
+        {
+            ImGui.Text($"{w.RowId}: {w.Name}");
+        }
+        ImGui.PopStyleColor();
+    }
+
+    private readonly IEnumerable<ContentFinderCondition> cfcSheet = Svc.Data.GetExcelSheet<ContentFinderCondition>(Svc.ClientState.ClientLanguage)!.Where(x => !x.Name.RawString.IsNullOrEmpty());
+    private void DrawCFC()
+    {
+        using var font = ImRaii.PushFont(UiBuilder.MonoFont);
+        ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+        foreach (var w in this.cfcSheet)
+        {
+            ImGui.Text($"{w.RowId}: {w.Name}");
+        }
+        ImGui.PopStyleColor();
+    }
+
+    private readonly IEnumerable<Weather> weatherSheet = Svc.Data.GetExcelSheet<Weather>(Svc.ClientState.ClientLanguage)!.Where(x => !x.Name.RawString.IsNullOrEmpty());
+    private void DrawWeather()
+    {
+        using var font = ImRaii.PushFont(UiBuilder.MonoFont);
+        ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+        foreach (var w in this.weatherSheet)
+        {
+            ImGui.Text($"{w.RowId}: {w.Name}");
+        }
+        ImGui.PopStyleColor();
+    }
+
+    private readonly IEnumerable<ClassJob> classJobSheet = Svc.Data.GetExcelSheet<ClassJob>(Svc.ClientState.ClientLanguage)!.Where(x => !x.Name.RawString.IsNullOrEmpty());
+    private void DrawClassJob()
+    {
+        using var font = ImRaii.PushFont(UiBuilder.MonoFont);
+        ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+        foreach (var cj in this.classJobSheet)
+        {
+            ImGui.Text($"{cj.RowId}: {cj.Name}; ExpArrayIndex={cj.ExpArrayIndex}");
         }
         ImGui.PopStyleColor();
     }
