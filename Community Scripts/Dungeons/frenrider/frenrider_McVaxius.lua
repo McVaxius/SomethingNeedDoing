@@ -1,5 +1,10 @@
 --[[
 Changelog
+v2.3
+fixed bubble follow wandering
+fixed slowness for follow
+I think i fixed the groundshit shenanigans
+
 v2.2
 fixed bunch of bugs related to forays
 added zoneids for sinus and oc
@@ -129,7 +134,7 @@ fool_flier = ini_check("fool_flier", "Beast with 3 backs")	-- if you have fly yo
 fulftype = ini_check("fulftype", "unchanged")				-- If you have lazyloot installed AND enabled (has to be done manually as it only has a toggle atm) can setup how loot is handled. Leave on "unchanged" if you don't want it to set your loot settings. Other settings include need, greed, pass
 force_gyasahl = ini_check("force_gyasahl", false) 	   		-- force gysahl green usage . maybe cause problems in towns with follow
 companionstrat = ini_check("companionstrat", "Free Stance") -- chocobo strat to use . Valid options are: "Follow", "Free Stance", "Defender Stance", "Healer Stance", "Attacker Stance"
-timefriction = ini_check("timefriction", 0.3)					-- how long to wait between "tics" of the main loop? 1 second default. smaller values will have potential crashy / fps impacts.
+timefriction = ini_check("timefriction", 0.3)				-- how long to wait between "tics" of the main loop? 1 second default. smaller values will have potential crashy / fps impacts.
 idle_shitter =  ini_check("idle_shitter", "/tomescroll")	-- what shall we do if we are idle, valid options are "list" "nothing" or any slash command, if you choose nothing, then after x tics of being idle it will do nothing, otherwise it will pick from a list randomly or run the specific emote you chose.  if your weird and evil you can throw in a snd script here too with /pcraft run asdfasdf
 idle_shitter_tic =  ini_check("idle_shitter_tic", 10)		-- how many tics till idle shitter?
 ----------------------------
@@ -758,7 +763,8 @@ function clingmove(nemm)
 			--gawk_gawk_3000("x->"..GetObjectRawXPos(nemm).."y->"..GetObjectRawYPos(nemm).."z->"..GetObjectRawZPos(nemm))--if its 0,0,0 we are not gonna do shiiiit.
 			--PathfindAndMoveTo(GetObjectRawXPos(nemm),GetObjectRawYPos(nemm),GetObjectRawZPos(nemm), false)
 			if bistance > hcling then
-				if are_we_social_distancing == 1 and are_we_in_i_zone == 0 and bistance > (hcling + socialdistance_x_wiggle/2 + socialdistance_z_wiggle/2) then --if we need to spread AND we arent in a zone of interact and not already within the buffer area
+			--* are they still jittering on bubble follow mode?
+				if are_we_social_distancing == 1 and are_we_in_i_zone == 0 and bistance > (hcling + socialdistance_x_wiggle + socialdistance_z_wiggle) then --if we need to spread AND we arent in a zone of interact and not already within the buffer area
 					--*we will do some stuff here - do i need to remove this commment? i think its sorted
 					fartX,fartZ = calculateBufferXY (GetPlayerRawXPos(),GetPlayerRawZPos(),GetObjectRawXPos(nemm),GetObjectRawZPos(nemm))
 					if GetCharacterCondition(77) == false then yield("/vnav moveto "..fartX.." "..GetObjectRawYPos(nemm).." "..fartZ) end
@@ -820,11 +826,13 @@ function clingmove(nemm)
 			end
 		end
 	end
+	--[[
 	if did_we_try_to_move == 1 then --check some things just in case
 		if GetCharacterCondition(11) == true then --groundsit
 			yield("/gaction jump")
 		end
 	end
+	--]]
 end
 
 we_are_in = GetZoneID()
@@ -878,12 +886,11 @@ function checkzoi()
 			yield("/target Inconspicuous Imp")
 			double_check_navGO(GetObjectRawXPos("Inconspicuous Imp"),GetObjectRawYPos("Inconspicuous Imp"),GetObjectRawZPos("Inconspicuous Imp"))
 		end
-		--prae, meri, dze, halatali	
 		for zzz=1,#zoi do
 			if zoi[zzz] == GZI then
 				are_we_in_i_zone = 1
 			end
-			yield("/wait 0.5")
+			yield("/wait 0.01")
 		end
 		if are_we_in_i_zone == 1 then
 			hcling = cling -- no social distancing if we need to interact with stuff in the zone
@@ -915,9 +922,16 @@ xp_item_equip = 0 --counter
 re_engage = 0 --counter
 renav_check = 0
 
+function IsPlayerReallyAvailable()
+	if IsPlayerAvailable() or GetCharacterCondition(11) then
+		return true
+	end
+	return false
+end
+
 while weirdvar == 1 do
 	--catch if character is ready before doing anything
-	if IsPlayerAvailable() then
+	if IsPlayerReallyAvailable() then
 		if type(GetCharacterCondition(34)) == "boolean" and type(GetCharacterCondition(26)) == "boolean" and type(GetCharacterCondition(4)) == "boolean" then
 			bistance = distance(GetPlayerRawXPos(), GetPlayerRawYPos(), GetPlayerRawZPos(), GetObjectRawXPos(fren),GetObjectRawYPos(fren),GetObjectRawZPos(fren))
 			if bistance > maxbistance then --follow ourselves if fren too far away or it will do weird shit
@@ -1097,26 +1111,26 @@ while weirdvar == 1 do
 							end
 							--reenter the inn room
 							--if (GetZoneID() ~= 177 and GetZoneID() ~= 178) and GetCharacterCondition(34) == false and NeedsRepair(50) == false then
-							if (GetZoneID() ~= 177 and GetZoneID() ~= 178 and GetZoneID() ~= 179) and GetCharacterCondition(34) == false and IsPlayerAvailable() then
+							if (GetZoneID() ~= 177 and GetZoneID() ~= 178 and GetZoneID() ~= 179) and GetCharacterCondition(34) == false and IsPlayerReallyAvailable() then
 								yield("/send ESCAPE")
 								yield("/ad stop") --seems to be needed or we get stuck in repair genjutsu
 								yield("/target Antoinaut") --gridania
 								yield("/target Mytesyn")   --limsa
 								yield("/target Otopa")     --uldah
 								yield("/wait 1")
-								if type(GetCharacterCondition(34)) == "boolean" and  GetCharacterCondition(34) == false and IsPlayerAvailable() then
+								if type(GetCharacterCondition(34)) == "boolean" and  GetCharacterCondition(34) == false and IsPlayerReallyAvailable() then
 									yield("/lockon on")
 									yield("/automove")
 								end
 								yield("/wait 2.5")
-								if type(GetCharacterCondition(34)) == "boolean" and  GetCharacterCondition(34) == false and IsPlayerAvailable() then
+								if type(GetCharacterCondition(34)) == "boolean" and  GetCharacterCondition(34) == false and IsPlayerReallyAvailable() then
 									yield("/callback _Notification true 0 17")
 									yield("/callback ContentsFinderConfirm true 9")
 									--yield("/interact")
 									PandoraSetFeatureState("Auto-interact with Objects in Instances",true)
 								end
 								yield("/wait 1")
-								if type(GetCharacterCondition(34)) == "boolean" and  GetCharacterCondition(34) == false and IsPlayerAvailable() then
+								if type(GetCharacterCondition(34)) == "boolean" and  GetCharacterCondition(34) == false and IsPlayerReallyAvailable() then
 									yield("/callback _Notification true 0 17")
 									yield("/callback ContentsFinderConfirm true 9")
 									yield("/callback SelectIconString true 0")
