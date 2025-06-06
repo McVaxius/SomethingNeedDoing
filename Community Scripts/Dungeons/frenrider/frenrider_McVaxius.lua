@@ -135,7 +135,7 @@ fulftype = ini_check("fulftype", "unchanged")				-- If you have lazyloot install
 force_gyasahl = ini_check("force_gyasahl", false) 	   		-- force gysahl green usage . maybe cause problems in towns with follow
 companionstrat = ini_check("companionstrat", "Free Stance") -- chocobo strat to use . Valid options are: "Follow", "Free Stance", "Defender Stance", "Healer Stance", "Attacker Stance"
 timefriction = ini_check("timefriction", 0.3)				-- how long to wait between "tics" of the main loop? 1 second default. smaller values will have potential crashy / fps impacts.
-idle_shitter =  ini_check("idle_shitter", "/tomescroll")	-- what shall we do if we are idle, valid options are "list" "nothing" or any slash command, if you choose nothing, then after x tics of being idle it will do nothing, otherwise it will pick from a list randomly or run the specific emote you chose.  if your weird and evil you can throw in a snd script here too with /pcraft run asdfasdf
+idle_shitter =  ini_check("idle_shitter", "/tomescroll")	-- what shall we do if we are idle, valid options are "list", "hfh", "nothing" or any slash command, list picks from a list, hfh runs a script that picks the current char for a custom list, nothing does nothing, and anything else is a custom command which can even be a /pcraft run hehehehe
 idle_shitter_tic =  ini_check("idle_shitter_tic", 10)		-- how many tics till idle shitter?
 ----------------------------
 ---CLING / DIST---
@@ -370,7 +370,7 @@ idle_shitter_list = {
 "/pushups",
 "/winded",
 "/groundsit",
-"/lean",
+"/lean",	
 "/overreact",
 "/photograph"
 }
@@ -393,7 +393,7 @@ zoi = {
 }
 
 duties_with_distancing = {
-{886,"Firmament"},
+{886,"Firmament"}, --no mounts
 {939,"Diadem"}, --pillion doesn't seem to work here "You cannot ride pillion" red game message O_o
 
 {732,"Anemos"},
@@ -693,6 +693,27 @@ function checkAREA()
 			floop = idle_shitter_list[getRandomNumber(1,#idle_shitter_list)]
 			yield(floop.." motion")
 --			gawk_gawk_3000("we attempted to -> list "..floop)
+		end
+		if idle_shitter == "hfh" then
+			-- Specify the path to your text file
+			-- forward slashes are actually backslashes.
+			--to use this find the hfh_template.ini file and rename it to hfh_Yourcharfirstlast.ini   notice no spaces.
+			--so if your character is named Pomelo Pup'per then you would call the .ini file   hfh_PomeloPupper.ini
+			--also be sure to update the folder name as per your preference
+			--just remember it will strip spaces and apostrophes
+			HFHtempchar = GetCharacterName()
+			--tempchar = tempchar:match("%s*(.-)%s*") --remove spaces at start and end only
+			HFHtempchar = HFHtempchar:gsub("%s", "")  --remove all spaces
+			HFHtempchar = HFHtempchar:gsub("'", "")   --remove all apostrophes
+			local HFHfilename = os.getenv("appdata").."\\XIVLauncher\\pluginConfigs\\SomethingNeedDoing\\hfh_"..HFHtempchar..".ini"
+
+			-- Call the function to load variables from the file
+			loadVariablesFromFile(HFHfilename)
+
+			yield("/echo Hello Fellow humans !")
+
+			floop = idle_shitter_list[getRandomNumber(1,#HFHidle_shitter_list)]
+			yield(floop.." motion")
 		end
 		if idle_shitter == "nothing" then
 --			gawk_gawk_3000("we attempted to -> nothing")
